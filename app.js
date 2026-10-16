@@ -325,10 +325,13 @@ async function makeAqiMap() {
   }
 }
 
+// Move the air-quality section before wiring the search field. On the home page
+// this creates #city-grid and #city-search dynamically; binding before that
+// happened meant the search input never received an event listener.
+moveAirQualityToHome();
 if (qs('#city-grid') || qs('#home-aqi-grid')) { qs('#city-search')?.addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
 if (qs('#news-grid')) { initNewsFilters(); updateNewsSourceCopy(); qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
 if (qs('.action-section')) { document.querySelector('.page-intro')?.remove(); document.querySelector('.action-section')?.remove(); }
-moveAirQualityToHome();
 initActionForm();
 initVerifiedActions();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>'); if (nav && !nav.querySelector('a[href="kontak.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="kontak.html">Kontak darurat</a>');
