@@ -1,4 +1,5 @@
 User-agent: *
+Disallow: /admin.html
 Allow: /
 
 Sitemap: https://rimbakita.kuatdigital.com/sitemap.xml
