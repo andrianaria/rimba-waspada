@@ -49,7 +49,7 @@ function applyLanguage(lang = currentLanguage) {
   const tickerLabel = qs('.news-ticker-label'); if (tickerLabel) tickerLabel.textContent = t('UPDATE KARHUTLA', 'WILDFIRE UPDATE');
   const tickerLink = qs('.news-ticker-link'); if (tickerLink) tickerLink.textContent = t('Semua berita ↗', 'All news ↗');
   const heroTitle = qs('.hero h1'); if (heroTitle) heroTitle.innerHTML = currentLanguage === 'en' ? 'Protecting forests.<br /><em>Protecting life.</em>' : 'Menjaga hutan.<br /><em>Menjaga kehidupan.</em>';
-  const heroLede = qs('.hero-lede'); if (heroLede) heroLede.textContent = t('Informasi yang membantu kita saling menjaga saat api, asap, dan udara buruk datang.', 'Clear information to help us look after one another when fire, smoke, and unhealthy air arrive.');
+  const heroLede = qs('.hero-lede'); if (heroLede) heroLede.textContent = t('Warga bantu warga, selalu waspada dan jaga kesehatan.', 'Neighbors helping neighbors: stay alert and protect your health.');
   const heroPrimary = qs('.hero-actions .button-primary'); if (heroPrimary) heroPrimary.innerHTML = `${t('Buka peta pantauan', 'Open monitoring map')} <span>↗</span>`;
   const heroSecondary = qs('.hero-actions .text-link'); if (heroSecondary) heroSecondary.innerHTML = `${t('Cek udara kota', 'Check city air')} <span>→</span>`;
   const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.innerHTML = currentLanguage === 'en' ? '5 cities with the<br /><em>highest sensor AQI.</em>' : '5 kota dengan udara<br /><em>paling perlu diwaspadai.</em>';
