@@ -55,6 +55,7 @@ function applyLanguage(lang = currentLanguage) {
   const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.innerHTML = currentLanguage === 'en' ? '5 cities with the<br /><em>highest sensor AQI.</em>' : '5 kota dengan udara<br /><em>paling perlu diwaspadai.</em>';
   const homeCopy = qs('.home-aqi-section .section-sidecopy'); if (homeCopy) homeCopy.textContent = t('Peringkat berdasarkan US AQI dari sensor IQAir AirVisual bila tersedia.', 'Ranked by US AQI from IQAir AirVisual sensors when available.');
   const footerLink = qs('.site-footer a'); if (footerLink) footerLink.textContent = t('Kirim dukungan', 'Send support');
+  const actionHeading = qs('.submit-heading h2'); if (actionHeading) actionHeading.innerHTML = currentLanguage === 'en' ? 'Register your action,<br /><em>we review its validity before it goes live.</em>' : 'Daftarkan aksimu,<br /><em>validitas akan dikurasi terlebih dahulu sebelum live.</em>';
   const page = location.pathname.split('/').pop() || 'index.html';
   const introCopy = {
     'udara.html': ['Udara yang kita hirup,<br /><em>kita jaga bersama.</em>', 'Two live sources are shown separately: CAMS/Open-Meteo model US AQI and IQAir AirVisual station US AQI when available.', 'Compare CAMS model values with IQAir station readings without mixing sources, times, or methods.'],
