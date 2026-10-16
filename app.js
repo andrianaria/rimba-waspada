@@ -56,6 +56,11 @@ const trustedSources = [
   { match: 'tempo.co', label: 'Tempo' }, { match: 'cnnindonesia.com', label: 'CNN Indonesia' },
 ];
 function sourceLabel(domain = '') { return trustedSources.find((source) => domain.toLowerCase().includes(source.match))?.label || null; }
+function articleSource(article) {
+  const candidates = [article?.domain];
+  try { if (article?.url) candidates.push(new URL(article.url).hostname); } catch {}
+  return candidates.map((value) => sourceLabel(value || '')).find(Boolean) || null;
+}
 
 function applyLanguage(lang = currentLanguage) {
   currentLanguage = lang === 'en' ? 'en' : 'id';
@@ -147,7 +152,7 @@ async function fetchNews() {
     const response = await fetch('/api/news', { signal: controller.signal });
     if (!response.ok) throw new Error(`Indeks berita HTTP ${response.status}`);
     const payload = await response.json();
-    return (payload.articles || []).map((article) => ({ ...article, source: sourceLabel(article.domain) })).filter((article) => article.source && article.url && article.title);
+    return (payload.articles || []).map((article) => ({ ...article, source: articleSource(article) })).filter((article) => article.source && article.url && article.title);
   } catch (error) {
     if (error?.name === 'AbortError') throw new Error('Permintaan berita timeout. Coba muat ulang.');
     throw error;
