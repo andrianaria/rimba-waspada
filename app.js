@@ -71,7 +71,7 @@ function makeMap() {
   const firesStatus = qs('#fires-status');
   const mapKey = window.FIRMS_MAP_KEY || '';
   if (!mapKey) {
-    if (firesStatus) firesStatus.textContent = 'MENUNGGU MAP_KEY · Peta siap menerima hotspot NASA FIRMS live';
+    if (firesStatus) firesStatus.textContent = 'MENUNGGU FEED LIVE · Peta siap menerima hotspot NASA FIRMS';
     return;
   }
   const bounds = '95,-11,141,6';
@@ -86,5 +86,5 @@ function makeMap() {
 if (qs('#city-grid')) { qs('#city-search').addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
 if (qs('#news-grid')) { qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
-document.title = document.title.replace(/Rimba Waspada/g, 'Rimba Kita'); document.querySelectorAll('body *').forEach((element) => { if (element.children.length === 0 && element.textContent.includes('Rimba Waspada')) element.textContent = element.textContent.replace(/Rimba Waspada/g, 'Rimba Kita'); });
+document.title = document.title.replace(/Rimba Waspada/g, 'Rimba Kita'); document.querySelectorAll('body *').forEach((element) => { if (element.children.length === 0) { if (element.textContent.includes('Rimba Waspada')) element.textContent = element.textContent.replace(/Rimba Waspada/g, 'Rimba Kita'); if (element.textContent.includes('MAP_KEY')) element.textContent = element.textContent.replace(/Hotspot aktif dari NASA FIRMS akan tampil di sini setelah FIRMS_MAP_KEY dikonfigurasi\./g, 'Hotspot aktif dari NASA FIRMS akan tampil di sini saat feed live terhubung.').replace(/MENUNGGU MAP_KEY/g, 'MENUNGGU FEED LIVE').replace(/FIRMS_MAP_KEY/g, 'feed live'); } });
 if (qs('#map')) { const config = document.createElement('script'); config.src = 'config.js'; config.onload = makeMap; config.onerror = makeMap; document.head.appendChild(config); } else makeMap();
