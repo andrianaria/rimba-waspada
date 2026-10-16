@@ -200,7 +200,7 @@ async function initAir() {
     if (!homeOnly) cities = await loadAllRegencies();
     const data = await fetchAirQuality();
     let iqairPayload = { configured: false, data: [] };
-    try { const iqairResponse = await fetch('/api/iqair'); if (iqairResponse.ok) iqairPayload = await iqairResponse.json(); } catch { /* model data remains usable when IQAir is unavailable */ }
+    try { const iqairResponse = await fetch('/api/iqair?source=iqair-v3'); if (iqairResponse.ok) iqairPayload = await iqairResponse.json(); } catch { /* model data remains usable when IQAir is unavailable */ }
     const iqairByName = new Map((iqairPayload.data || []).map((item) => [item.requestedName, item]));
     data.forEach((city) => { city.iqair = iqairByName.get(city.name) || null; });
     window.airData = data;
