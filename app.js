@@ -1,11 +1,28 @@
 const cities = [
   { name: 'Jakarta', province: 'DKI Jakarta', lat: -6.2088, lon: 106.8456 },
+  { name: 'Batam', province: 'Kepulauan Riau', lat: 1.0456, lon: 104.0305 },
+  { name: 'Palembang', province: 'Sumatera Selatan', lat: -2.9761, lon: 104.7754 },
+  { name: 'Medan', province: 'Sumatera Utara', lat: 3.5952, lon: 98.6722 },
+  { name: 'Dumai', province: 'Riau', lat: 1.6666, lon: 101.4000 },
+  { name: 'Bandar Lampung', province: 'Lampung', lat: -5.3971, lon: 105.2668 },
+  { name: 'Padang', province: 'Sumatera Barat', lat: -0.9471, lon: 100.4172 },
   { name: 'Palangka Raya', province: 'Kalimantan Tengah', lat: -2.2096, lon: 113.9213 },
   { name: 'Pontianak', province: 'Kalimantan Barat', lat: -0.0263, lon: 109.3425 },
   { name: 'Pekanbaru', province: 'Riau', lat: 0.5071, lon: 101.4478 },
   { name: 'Jambi', province: 'Jambi', lat: -1.6101, lon: 103.6131 },
+  { name: 'Bengkulu', province: 'Bengkulu', lat: -3.7928, lon: 102.2608 },
   { name: 'Banjarmasin', province: 'Kalimantan Selatan', lat: -3.3186, lon: 114.5944 },
   { name: 'Samarinda', province: 'Kalimantan Timur', lat: -0.5022, lon: 117.1536 },
+  { name: 'Balikpapan', province: 'Kalimantan Timur', lat: -1.2379, lon: 116.8529 },
+  { name: 'Banjarbaru', province: 'Kalimantan Selatan', lat: -3.4420, lon: 114.8410 },
+  { name: 'Bandung', province: 'Jawa Barat', lat: -6.9175, lon: 107.6191 },
+  { name: 'Semarang', province: 'Jawa Tengah', lat: -6.9667, lon: 110.4167 },
+  { name: 'Surabaya', province: 'Jawa Timur', lat: -7.2575, lon: 112.7521 },
+  { name: 'Yogyakarta', province: 'DI Yogyakarta', lat: -7.7956, lon: 110.3695 },
+  { name: 'Denpasar', province: 'Bali', lat: -8.6705, lon: 115.2126 },
+  { name: 'Kupang', province: 'Nusa Tenggara Timur', lat: -10.1772, lon: 123.6070 },
+  { name: 'Palu', province: 'Sulawesi Tengah', lat: -0.9003, lon: 119.8779 },
+  { name: 'Manado', province: 'Sulawesi Utara', lat: 1.4748, lon: 124.8421 },
   { name: 'Makassar', province: 'Sulawesi Selatan', lat: -5.1477, lon: 119.4327 },
 ];
 
@@ -42,7 +59,7 @@ function renderCities(data) {
   const grid = qs('#city-grid');
   if (!grid) return;
   const query = (qs('#city-search')?.value || '').toLowerCase();
-  const filtered = data.filter((city) => `${city.name} ${city.province}`.toLowerCase().includes(query));
+  const filtered = data.filter((city) => `${city.name} ${city.province}`.toLowerCase().includes(query)).sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1));
   grid.innerHTML = filtered.length ? filtered.map((city) => { const status = aqiStatus(city.aqi); return `<article class="air-card"><div class="air-card-top"><div><div class="city-name">${escapeHtml(city.name)}</div><div class="province">${escapeHtml(city.province)}</div></div><span class="air-badge ${status.tone}">${status.label}</span></div><div class="aqi-row"><strong class="aqi-number">${city.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />model</span></div><div class="pm">PM2.5 · ${city.pm25 == null ? '—' : `${Number(city.pm25).toFixed(1)} µg/m³`} · live</div><div class="card-time">${city.time ? `${city.time.replace('T', ' ')} · ${city.timezone}` : 'waktu tidak tersedia'}</div></article>`; }).join('') : '<p class="data-disclaimer">Kota tidak ditemukan.</p>';
 }
 
@@ -53,7 +70,8 @@ async function initAir() {
     const data = await fetchAirQuality();
     window.airData = data;
     renderCities(data);
-    if (status) status.textContent = `LIVE · ${new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}`;
+    const worst = [...data].sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1))[0];
+    if (status) status.textContent = `LIVE · ${data.length} kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI`;
     if (homeStatus) homeStatus.textContent = 'Kualitas udara live terhubung';
   } catch (error) {
     if (status) status.textContent = 'Gagal mengambil feed live · coba refresh';
