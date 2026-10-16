@@ -52,8 +52,8 @@ function applyLanguage(lang = currentLanguage) {
   const heroLede = qs('.hero-lede'); if (heroLede) heroLede.textContent = t('Warga bantu warga, selalu waspada dan jaga kesehatan.', 'Neighbors helping neighbors: stay alert and protect your health.');
   const heroPrimary = qs('.hero-actions .button-primary'); if (heroPrimary) heroPrimary.innerHTML = `${t('Buka peta pantauan', 'Open monitoring map')} <span>↗</span>`;
   const heroSecondary = qs('.hero-actions .text-link'); if (heroSecondary) heroSecondary.innerHTML = `${t('Cek udara kota', 'Check city air')} <span>→</span>`;
-  const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.innerHTML = currentLanguage === 'en' ? '5 cities with the<br /><em>highest sensor AQI.</em>' : '5 kota dengan udara<br /><em>paling perlu diwaspadai.</em>';
-  const homeCopy = qs('.home-aqi-section .section-sidecopy'); if (homeCopy) homeCopy.textContent = t('Peringkat berdasarkan US AQI dari sensor IQAir AirVisual bila tersedia.', 'Ranked by US AQI from IQAir AirVisual sensors when available.');
+  const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.innerHTML = currentLanguage === 'en' ? '5 cities with the<br /><em>highest IQAir AQI.</em>' : '5 kota dengan<br /><em>AQI IQAir tertinggi.</em>';
+  const homeCopy = qs('.home-aqi-section .section-sidecopy'); if (homeCopy) homeCopy.textContent = t('Peringkat berdasarkan Overall US AQI tingkat kota dari IQAir.', 'Ranked by IQAir city-level Overall US AQI.');
   const footerLink = qs('.site-footer a'); if (footerLink) footerLink.textContent = t('Kirim dukungan', 'Send support');
   const actionHeading = qs('.submit-heading h2'); if (actionHeading) actionHeading.innerHTML = currentLanguage === 'en' ? 'Register your action,<br /><em>we review its validity before it goes live.</em>' : 'Daftarkan aksimu,<br /><em>validitas akan dikurasi terlebih dahulu sebelum live.</em>';
   const verifiedHeading = qs('.verified-actions-heading h2'); if (verifiedHeading) verifiedHeading.innerHTML = currentLanguage === 'en' ? 'Action<br /><em>directory.</em>' : 'Daftar<br /><em>aksi.</em>';
@@ -197,15 +197,15 @@ function renderHomeWorst(data, iqairPayload) {
   if (!grid) return;
   const ranked = data.filter((city) => city.iqair?.aqi != null).sort((a, b) => b.iqair.aqi - a.iqair.aqi).slice(0, 5);
   if (!iqairPayload.configured) {
-    grid.innerHTML = `<div class="home-aqi-empty"><strong>${t('IQAir belum terhubung', 'IQAir is not connected yet')}</strong><p>${t('Peringkat ini hanya menampilkan data sensor IQAir. Tambahkan IQAIR_API_KEY di Vercel Production agar lima kota dengan AQI tertinggi dapat ditampilkan.', 'This ranking only uses IQAir sensor data. Add IQAIR_API_KEY in Vercel Production to show the five cities with the highest AQI.')}</p><a class="text-link" href="udara.html">${t('Lihat data model CAMS', 'View CAMS model data')} <span>→</span></a></div>`;
+    grid.innerHTML = `<div class="home-aqi-empty"><strong>${t('IQAir belum terhubung', 'IQAir is not connected yet')}</strong><p>${t('Tambahkan IQAIR_API_KEY di Vercel Production agar lima kota dengan AQI IQAir tertinggi dapat ditampilkan.', 'Add IQAIR_API_KEY in Vercel Production to show the five cities with the highest IQAir AQI.')}</p><a class="text-link" href="udara.html">${t('Lihat data model CAMS', 'View CAMS model data')} <span>→</span></a></div>`;
     return;
   }
   if (!ranked.length) {
     const denied = iqairPayload.errors?.some((error) => error.includes('permission_denied'));
-    grid.innerHTML = `<div class="home-aqi-empty"><strong>${t(denied ? 'Akses endpoint IQAir belum tersedia' : 'Data sensor belum tersedia', denied ? 'IQAir endpoint access is not available' : 'Sensor data is not available yet')}</strong><p>${t(denied ? 'API key sudah terbaca, tetapi paket IQAir saat ini belum memberi izin untuk endpoint data kota/stasiun yang digunakan Rimba Kita. Aktifkan paket API yang sesuai di IQAir agar data sensor dapat ditampilkan.' : 'Belum ada stasiun IQAir yang mengirim pembacaan untuk kota-kota yang dipantau.', denied ? 'The API key is detected, but the current IQAir plan does not allow the city/station endpoints used by Rimba Kita. Enable an eligible IQAir API plan to show sensor data.' : 'No IQAir station is currently returning readings for the monitored cities.')}</p></div>`;
+    grid.innerHTML = `<div class="home-aqi-empty"><strong>${t(denied ? 'Akses data kota IQAir belum tersedia' : 'Data AQI belum tersedia', denied ? 'IQAir city data access is not available' : 'IQAir AQI data is not available yet')}</strong><p>${t(denied ? 'API key sudah terbaca, tetapi endpoint Overall AQI tingkat kota belum diizinkan untuk paket IQAir saat ini.' : 'Belum ada pembaruan AQI kota dari IQAir untuk wilayah yang dipantau.', denied ? 'The API key is detected, but city-level Overall AQI is not enabled for the current IQAir plan.' : 'No city-level AQI update is available from IQAir for the monitored locations.')}</p></div>`;
     return;
   }
-  grid.innerHTML = ranked.map((city, index) => { const status = aqiStatus(city.iqair.aqi); return `<article class="home-aqi-card"><div class="home-aqi-rank">0${index + 1}</div><div class="home-aqi-main"><div><strong>${escapeHtml(city.name)}</strong><span>${escapeHtml(city.province)}</span></div><span class="air-badge ${status.tone}">${escapeHtml(status.label)}</span></div><div class="home-aqi-value"><b>${city.iqair.aqi}</b><span>US AQI · IQAir<br />${escapeHtml(city.iqair.station || t('sensor terdekat', 'nearest sensor'))}</span></div><div class="home-aqi-time">${escapeHtml(city.iqair.timestamp ? new Date(city.iqair.timestamp).toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : t('waktu tidak tersedia', 'time unavailable'))}</div></article>`; }).join('');
+  grid.innerHTML = ranked.map((city, index) => { const status = aqiStatus(city.iqair.aqi); return `<article class="home-aqi-card"><div class="home-aqi-rank">0${index + 1}</div><div class="home-aqi-main"><div><strong>${escapeHtml(city.name)}</strong><span>${escapeHtml(city.province)}</span></div><span class="air-badge ${status.tone}">${escapeHtml(status.label)}</span></div><div class="home-aqi-value"><b>${city.iqair.aqi}</b><span>US AQI · IQAir<br />${t('tingkat kota', 'city level')}</span></div><div class="home-aqi-time">${escapeHtml(city.iqair.timestamp ? new Date(city.iqair.timestamp).toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : t('waktu tidak tersedia', 'time unavailable'))}</div></article>`; }).join('');
 }
 
 async function initAir() {
@@ -224,6 +224,8 @@ async function initAir() {
     data.forEach((city) => { city.iqair = iqairByName.get(city.name) || null; });
     window.airData = data;
     renderCities(data);
+    document.querySelectorAll('.aqi-source-card.sensor .aqi-label').forEach((label) => { label.innerHTML = 'US AQI<br />IQAir kota'; });
+    document.querySelectorAll('.aqi-source-labels span:last-child').forEach((label) => { label.textContent = label.textContent.replace(/Stasiun IQAir tidak tersedia/g, 'AQI kota IQAir tidak tersedia').replace(/Stasiun IQAir/g, 'IQAir'); });
     renderHomeWorst(data, iqairPayload);
     const worst = [...data].sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1))[0];
     if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI model · IQAir ${iqairPayload.configured ? `${iqairPayload.data?.length || 0} stasiun${iqairPayload.errors?.some((error) => error.includes('permission_denied')) ? ' · akses endpoint ditolak' : ''}` : 'belum terhubung'}`;
