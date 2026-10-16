@@ -69,12 +69,17 @@ module.exports = async function handler(request, response) {
       const cityResponse = await readUpstream(cityUrl);
       const cityResult = pollutionResult(location, cityResponse.payload, 'city');
       if (cityResult) return cityResult;
+      const nearestCityUrl = new URL('https://api.airvisual.com/v2/nearest_city');
+      nearestCityUrl.search = new URLSearchParams({ lat: String(location.lat), lon: String(location.lon), key });
+      const nearestCityResponse = await readUpstream(nearestCityUrl);
+      const nearestCityResult = pollutionResult(location, nearestCityResponse.payload, 'nearest_city');
+      if (nearestCityResult) return nearestCityResult;
       const nearestUrl = new URL('https://api.airvisual.com/v2/nearest_station');
       nearestUrl.search = new URLSearchParams({ lat: String(location.lat), lon: String(location.lon), key });
       const nearestResponse = await readUpstream(nearestUrl);
       const nearestResult = pollutionResult(location, nearestResponse.payload, 'nearest_station');
       if (nearestResult) return nearestResult;
-      const upstreamError = nearestResponse.payload?.data?.message || nearestResponse.payload?.status || cityResponse.payload?.data?.message || cityResponse.payload?.status || `HTTP ${nearestResponse.upstream.status}`;
+      const upstreamError = nearestResponse.payload?.data?.message || nearestResponse.payload?.status || nearestCityResponse.payload?.data?.message || nearestCityResponse.payload?.status || cityResponse.payload?.data?.message || cityResponse.payload?.status || `HTTP ${nearestResponse.upstream.status}`;
       errors.push(`${location.name}: ${upstreamError}`);
     } catch (error) { errors.push(`${location.name}: ${error.message}`); }
     return null;
