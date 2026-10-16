@@ -1,0 +1,60 @@
+name: Pengajuan aksi warga
+description: Ajukan aksi karhutla untuk dikurasi oleh tim Rimba Kita.
+title: "[KURASI AKSI] "
+labels: ["pengajuan-aksi", "perlu-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Terima kasih. Pengajuan akan diperiksa sebelum ditampilkan. Jangan kirim nomor rekening pribadi, KTP, atau dokumen sensitif.
+  - type: input
+    id: nama-aksi
+    attributes:
+      label: Nama aksi
+      placeholder: Posko Asap Riau 2026
+    validations:
+      required: true
+  - type: input
+    id: organisasi
+    attributes:
+      label: Organisasi penyelenggara
+      placeholder: Nama yayasan/komunitas/lembaga
+    validations:
+      required: true
+  - type: input
+    id: url-donasi
+    attributes:
+      label: URL donasi resmi
+      description: Gunakan URL HTTPS yang dapat diverifikasi; jangan gunakan URL shortener.
+      placeholder: https://contoh.org/donasi
+    validations:
+      required: true
+  - type: input
+    id: bukti
+    attributes:
+      label: URL bukti kegiatan
+      description: Tautan proposal, laporan, publikasi, atau bukti dari mitra resmi.
+      placeholder: https://drive.google.com/...
+    validations:
+      required: true
+  - type: textarea
+    id: detail
+    attributes:
+      label: Detail aksi
+      description: Lokasi, tujuan, periode, target dana, dan penggunaan dana.
+    validations:
+      required: true
+  - type: input
+    id: kontak
+    attributes:
+      label: Kontak verifikasi
+      description: Email domain organisasi atau nomor kontak publik.
+    validations:
+      required: true
+  - type: checkboxes
+    id: pernyataan
+    attributes:
+      label: Pernyataan
+      options:
+        - label: Saya mengizinkan tim Rimba Kita melakukan verifikasi dan menampilkan metadata aksi yang lolos kurasi.
+          required: true
