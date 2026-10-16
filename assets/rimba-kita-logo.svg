@@ -1,0 +1,9 @@
+<svg width="176" height="40" viewBox="0 0 176 40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Rimba Kita</title>
+  <desc id="desc">Logo Rimba Kita dengan simbol dua daun.</desc>
+  <rect x="1" y="1" width="38" height="38" rx="12" fill="#193F4B"/>
+  <path d="M20 31.5V14.5" stroke="#EAF4F0" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M19.8 22.1C13.8 22.3 10.4 19.1 10.3 13.1C16.2 13.1 19.7 16.3 19.8 22.1Z" fill="#73A89F"/>
+  <path d="M20.2 27.2C20.4 21.3 24 18.1 29.8 18.3C29.7 24.1 26.2 27.3 20.2 27.2Z" fill="#A9CCC4"/>
+  <text x="51" y="26" fill="#173B46" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" letter-spacing="-0.7">Rimba Kita</text>
+</svg>
