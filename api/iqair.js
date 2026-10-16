@@ -27,6 +27,7 @@ const locations = [
   { name: 'Manado', province: 'Sulawesi Utara', city: 'Manado', state: 'North Sulawesi', lat: 1.4748, lon: 124.8421 },
   { name: 'Makassar', province: 'Sulawesi Selatan', city: 'Makassar', state: 'South Sulawesi', lat: -5.1477, lon: 119.4327 },
 ];
+const communityLocations = ['Batam', 'Palembang', 'Palangka Raya', 'Pekanbaru', 'Pontianak'];
 
 function send(response, status, payload, cacheable = false) {
   if (cacheable) {
@@ -56,7 +57,8 @@ module.exports = async function handler(request, response) {
   if (!['GET', 'POST'].includes(request.method)) return send(response, 405, { error: 'Method tidak didukung.' });
 
   const requested = request.method === 'POST' && request.body?.locations ? request.body.locations : locations;
-  const safeLocations = requested.filter((location) => Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lon))).slice(0, 25);
+  // Community is limited to 5 calls/minute, so keep this endpoint to five city-level AQI calls.
+  const safeLocations = requested.filter((location) => communityLocations.includes(location.name) && Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lon))).slice(0, 5);
   if (!safeLocations.length) return send(response, 200, { configured: true, data: [], errors: ['Tidak ada lokasi valid.'] }, request.method === 'GET');
 
   const errors = [];
