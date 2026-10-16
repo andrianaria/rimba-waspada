@@ -63,18 +63,23 @@ const fallbackArticles = [
 export async function onRequestGet() {
   try {
     const queries = [
-      ['Kompas', 'site:kompas.com karhutla Indonesia'],
-      ['detikcom', 'site:detik.com karhutla Indonesia'],
-      ['Tempo', 'site:tempo.co karhutla Indonesia'],
-      ['CNN Indonesia', 'site:cnnindonesia.com karhutla Indonesia']
+      ['Kompas', 'site:kompas.com karhutla Indonesia', 'kompas.com'],
+      ['detikcom', 'site:detik.com karhutla Indonesia', 'detik.com'],
+      ['Tempo', 'site:tempo.co karhutla Indonesia', 'tempo.co'],
+      ['CNN Indonesia', 'site:cnnindonesia.com karhutla Indonesia', 'cnnindonesia.com']
     ];
-    const googleResults = await Promise.allSettled(queries.map(async ([source, query]) => {
+    const broadEndpoint = 'https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id';
+    const broadResponse = await fetchWithTimeout(broadEndpoint);
+    let articles = broadResponse.ok ? parseGoogleNews(await broadResponse.text()) : [];
+
+    const missingQueries = queries.filter(([, , domain]) => !articles.some((article) => article.domain.includes(domain)));
+    const sourceResults = await Promise.allSettled(missingQueries.map(async ([source, query]) => {
       const endpoint = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`;
-      const response = await fetchWithTimeout(endpoint);
+      const response = await fetchWithTimeout(endpoint, 9000);
       if (!response.ok) return [];
       return parseGoogleNews(await response.text()).map((article) => ({ ...article, source }));
     }));
-    let articles = googleResults.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
+    articles = articles.concat(sourceResults.flatMap((result) => result.status === 'fulfilled' ? result.value : []));
 
     if (!articles.length) {
       const directFeeds = [
