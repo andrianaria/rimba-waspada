@@ -121,6 +121,10 @@ async function initAir() {
 
 function makeMap() {
   if (!qs('#map') || !window.L) return;
+  const mapIntro = document.querySelector('.page-intro>p:not(.eyebrow)');
+  if (mapIntro) mapIntro.textContent = 'NASA FIRMS mendeteksi titik panas dari citra satelit secara near-real-time. Satu titik adalah sinyal awal, bukan bukti kebakaran yang sudah terkonfirmasi.';
+  const mapNote = qs('.map-note');
+  if (mapNote) mapNote.innerHTML = '<strong>Apa itu hotspot NASA?</strong><p>Hotspot adalah anomali panas yang tertangkap sensor satelit NASA FIRMS, biasanya dari VIIRS atau MODIS.</p><p>Gunakan titik, waktu, dan tingkat kepercayaan sebagai petunjuk awal. Konfirmasi tetap perlu dilakukan dengan kondisi lapangan dan sumber resmi.</p>';
   const map = L.map('map', { scrollWheelZoom: false, zoomControl: false }).setView([-1.8, 117.2], 4.7);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.82 }).addTo(map);
