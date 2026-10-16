@@ -31,6 +31,26 @@ const SITE_BRAND = 'Rimba Kita';
 let currentLanguage = localStorage.getItem('rimbakita-language') || 'id';
 function t(id, en) { return currentLanguage === 'en' ? en : id; }
 const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+function applySeo() {
+  const page = location.pathname.split('/').pop() || 'index.html';
+  const seo = {
+    'index.html': { title: 'Karhutla Indonesia Hari Ini — Pantau Hotspot & Kualitas Udara | Rimba Kita', description: 'Pantau karhutla Indonesia secara lebih cepat: lihat hotspot NASA FIRMS, kualitas udara, AQI, asap, dan berita kebakaran hutan terkini.', keywords: 'karhutla, pantau karhutla, kebakaran hutan, kebakaran lahan, hotspot NASA FIRMS, kualitas udara Indonesia, AQI, kabut asap' },
+    'pantauan.html': { title: 'Pantau Karhutla Indonesia — Peta Hotspot NASA FIRMS | Rimba Kita', description: 'Pantau keadaan karhutla Indonesia melalui peta hotspot NASA FIRMS, sinyal panas satelit, dan atmosfer karbon monoksida.', keywords: 'pantau karhutla, keadaan karhutla, peta hotspot, NASA FIRMS, titik panas, kebakaran hutan Indonesia' },
+    'udara.html': { title: 'Kualitas Udara Indonesia — AQI & PM2.5 | Rimba Kita', description: 'Cek kualitas udara Indonesia, US AQI berbasis model CAMS, AQI IQAir bila tersedia, PM2.5, dan kota dengan udara paling perlu diwaspadai.', keywords: 'kualitas udara Indonesia, AQI Indonesia, US AQI, IQAir, PM2.5, kabut asap karhutla' },
+    'berita.html': { title: 'Berita Karhutla Indonesia Terbaru — Radar Media | Rimba Kita', description: 'Berita karhutla Indonesia terbaru dari Kompas, detikcom, Tempo, dan CNN Indonesia, diringkas dengan tautan ke artikel asli.', keywords: 'berita karhutla, berita kebakaran hutan, kabut asap terbaru, Kompas karhutla, detik karhutla, Tempo karhutla' },
+    'aksi.html': { title: 'Aksi Warga untuk Karhutla — Rimba Kita', description: 'Daftarkan aksi warga untuk membantu menghadapi karhutla, kabut asap, dan dampak kebakaran hutan dengan proses kurasi yang jelas.', keywords: 'aksi warga karhutla, bantuan kebakaran hutan, lapor karhutla, dukungan warga, bantuan kabut asap' },
+    'kontak.html': { title: 'Kontak Darurat Karhutla Indonesia | Rimba Kita', description: 'Kontak darurat untuk wilayah terdampak karhutla, kebakaran hutan, kabut asap, dan keadaan yang mengancam keselamatan.', keywords: 'kontak darurat karhutla, pemadam kebakaran, BPBD, kabut asap, nomor darurat Indonesia' },
+  }[page] || {};
+  if (!seo.title) return;
+  document.title = seo.title;
+  const setMeta = (selector, attribute, value) => { let element = document.head.querySelector(selector); if (!element) { element = document.createElement('meta'); const name = selector.match(/(?:name|property)="([^"]+)"/)?.[1]; if (name) element.setAttribute(attribute, name); document.head.appendChild(element); } element.setAttribute('content', value); };
+  setMeta('meta[name="description"]', 'name', seo.description); setMeta('meta[name="keywords"]', 'name', seo.keywords); setMeta('meta[name="robots"]', 'name', 'index,follow,max-image-preview:large');
+  const canonicalUrl = `https://rimbakita.kuatdigital.com/${page === 'index.html' ? '' : page}`;
+  let canonical = document.head.querySelector('link[rel="canonical"]'); if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); } canonical.href = canonicalUrl;
+  setMeta('meta[property="og:type"]', 'property', 'website'); setMeta('meta[property="og:site_name"]', 'property', 'Rimba Kita'); setMeta('meta[property="og:title"]', 'property', seo.title); setMeta('meta[property="og:description"]', 'property', seo.description); setMeta('meta[property="og:url"]', 'property', canonicalUrl); setMeta('meta[property="og:image"]', 'property', 'https://rimbakita.kuatdigital.com/assets/karhutla-hero.jpeg');
+  setMeta('meta[name="twitter:card"]', 'name', 'summary_large_image'); setMeta('meta[name="twitter:title"]', 'name', seo.title); setMeta('meta[name="twitter:description"]', 'name', seo.description); setMeta('meta[name="twitter:image"]', 'name', 'https://rimbakita.kuatdigital.com/assets/karhutla-hero.jpeg');
+  if (page === 'index.html' && !document.head.querySelector('#rimbakita-schema')) { const schema = document.createElement('script'); schema.id = 'rimbakita-schema'; schema.type = 'application/ld+json'; schema.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebSite', name: 'Rimba Kita', url: 'https://rimbakita.kuatdigital.com/', description: 'Pusat informasi publik untuk memantau karhutla, hotspot NASA FIRMS, kualitas udara, AQI, dan berita kebakaran hutan Indonesia.', inLanguage: 'id-ID' }); document.head.appendChild(schema); }
+}
 const trustedSources = [
   { match: 'kompas.com', label: 'Kompas' }, { match: 'detik.com', label: 'detikcom' },
   { match: 'tempo.co', label: 'Tempo' }, { match: 'cnnindonesia.com', label: 'CNN Indonesia' },
@@ -335,6 +355,7 @@ if (qs('.action-section')) { document.querySelector('.page-intro')?.remove(); do
 initActionForm();
 initVerifiedActions();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>'); if (nav && !nav.querySelector('a[href="kontak.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="kontak.html">Kontak darurat</a>');
+applySeo();
 document.querySelectorAll('nav a[href="udara.html"]').forEach((element) => element.remove());
 const homeAqiSection = document.querySelector('.home-aqi-section'); if (homeAqiSection) { homeAqiSection.id = 'home-aqi-section'; document.querySelectorAll('a[href="udara.html"]').forEach((link) => { link.href = 'index.html#home-aqi-section'; }); }
 document.querySelectorAll('.header-button, .site-footer a').forEach((element) => element.remove());
