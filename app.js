@@ -1,4 +1,4 @@
-const cities = [
+let cities = [
   { name: 'Jakarta', province: 'DKI Jakarta', lat: -6.2088, lon: 106.8456 },
   { name: 'Batam', province: 'Kepulauan Riau', lat: 1.0456, lon: 104.0305 },
   { name: 'Palembang', province: 'Sumatera Selatan', lat: -2.9761, lon: 104.7754 },
@@ -47,12 +47,35 @@ function aqiStatus(aqi) {
   return { label: 'Sangat tidak sehat', tone: 'unhealthy' };
 }
 
+async function loadAllRegencies() {
+  const cached = sessionStorage.getItem('rimbakita-regencies-v1');
+  if (cached) return JSON.parse(cached);
+  const provincesResponse = await fetch('https://www.emsifa.com/api-wilayah-indonesia/v2/provinces.json');
+  if (!provincesResponse.ok) throw new Error(`Wilayah HTTP ${provincesResponse.status}`);
+  const provinces = await provincesResponse.json();
+  const all = [];
+  for (let i = 0; i < provinces.data.length; i += 8) {
+    const group = provinces.data.slice(i, i + 8);
+    const results = await Promise.all(group.map(async (province) => { const response = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/v2/regencies/${province.id}.json`); if (!response.ok) return []; const payload = await response.json(); return (payload.data || []).map((city) => ({ name: city.name.replace(/^(Kabupaten|Kota)\s+/i, ''), displayName: city.name, province: province.name, lat: Number(city.lat), lon: Number(city.lng), code: city.id })); }));
+    all.push(...results.flat());
+  }
+  const usable = all.filter((city) => Number.isFinite(city.lat) && Number.isFinite(city.lon));
+  sessionStorage.setItem('rimbakita-regencies-v1', JSON.stringify(usable));
+  return usable;
+}
+
 async function fetchAirQuality() {
-  const params = new URLSearchParams({ latitude: cities.map((c) => c.lat).join(','), longitude: cities.map((c) => c.lon).join(','), current: 'us_aqi,pm2_5,pm10', timezone: 'auto', forecast_days: '1' });
-  const response = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${params}`);
-  if (!response.ok) throw new Error(`Open-Meteo HTTP ${response.status}`);
-  const payload = await response.json();
-  return (Array.isArray(payload) ? payload : [payload]).map((data, index) => ({ ...cities[index], aqi: data.current?.us_aqi ?? null, pm25: data.current?.pm2_5 ?? null, pm10: data.current?.pm10 ?? null, time: data.current?.time ?? null, timezone: data.timezone ?? 'Asia/Jakarta' }));
+  const output = [];
+  for (let i = 0; i < cities.length; i += 40) {
+    const batch = cities.slice(i, i + 40);
+    const params = new URLSearchParams({ latitude: batch.map((c) => c.lat).join(','), longitude: batch.map((c) => c.lon).join(','), current: 'us_aqi,pm2_5,pm10', timezone: 'auto', forecast_days: '1' });
+    const response = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${params}`);
+    if (!response.ok) continue;
+    const payload = await response.json();
+    (Array.isArray(payload) ? payload : [payload]).forEach((data, index) => output.push({ ...batch[index], aqi: data.current?.us_aqi ?? null, pm25: data.current?.pm2_5 ?? null, pm10: data.current?.pm10 ?? null, time: data.current?.time ?? null, timezone: data.timezone ?? 'Asia/Jakarta' }));
+  }
+  if (!output.length) throw new Error('Open-Meteo tidak mengembalikan data');
+  return output;
 }
 
 function renderCities(data) {
@@ -67,11 +90,13 @@ async function initAir() {
   const status = qs('#air-status');
   const homeStatus = qs('#home-status');
   try {
+    if (status) status.textContent = 'MEMUAT 514 KABUPATEN/KOTA…';
+    cities = await loadAllRegencies();
     const data = await fetchAirQuality();
     window.airData = data;
     renderCities(data);
     const worst = [...data].sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1))[0];
-    if (status) status.textContent = `LIVE · ${data.length} kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI`;
+    if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI`;
     if (homeStatus) homeStatus.textContent = 'Kualitas udara live terhubung';
   } catch (error) {
     if (status) status.textContent = 'Gagal mengambil feed live · coba refresh';
