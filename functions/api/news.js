@@ -9,10 +9,42 @@ function parseGoogleNews(xml) {
   }).filter((article) => article.title && article.url && article.domain);
 }
 
+async function fetchWithTimeout(url, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function parseGdelt(payload) {
+  return (payload?.articles || []).map((article) => ({
+    title: article.title || '',
+    url: article.url || '',
+    domain: article.domain || '',
+    seendate: article.seendate || '',
+    description: article.socialimage || ''
+  })).filter((article) => article.title && article.url && article.domain);
+}
+
 export async function onRequestGet() {
   try {
-    const rss = await fetch('https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id');
-    if (!rss.ok) return new Response(JSON.stringify({ error: 'Feed berita sedang tidak tersedia.' }), { status: 502, headers: { 'content-type': 'application/json' } });
-    return new Response(JSON.stringify({ articles: parseGoogleNews(await rss.text()) }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=900, stale-while-revalidate=1800' } });
-  } catch { return new Response(JSON.stringify({ error: 'Indeks berita tidak dapat dihubungi.' }), { status: 502, headers: { 'content-type': 'application/json' } }); }
+    const rss = await fetchWithTimeout('https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id');
+    let articles = rss.ok ? parseGoogleNews(await rss.text()) : [];
+
+    if (!articles.length) {
+      const query = encodeURIComponent('(karhutla OR "kebakaran hutan" OR "kebakaran lahan") Indonesia');
+      const endpoint = `https://api.gdeltproject.org/api/v2/doc/doc?query=${query}&mode=artlist&maxrecords=100&format=json&sort=datedesc&timespan=7d`;
+      const upstream = await fetchWithTimeout(endpoint);
+      if (upstream.ok) articles = parseGdelt(await upstream.json());
+    }
+
+    if (!articles.length) return new Response(JSON.stringify({ error: 'Indeks berita sedang tidak tersedia.', articles: [] }), { status: 502, headers: { 'content-type': 'application/json' } });
+    return new Response(JSON.stringify({ articles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=900, stale-while-revalidate=1800' } });
+  } catch (error) {
+    const message = error?.name === 'AbortError' ? 'Sumber berita terlalu lama merespons.' : 'Indeks berita tidak dapat dihubungi.';
+    return new Response(JSON.stringify({ error: message, articles: [] }), { status: 502, headers: { 'content-type': 'application/json' } });
+  }
 }
