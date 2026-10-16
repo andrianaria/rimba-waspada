@@ -76,6 +76,8 @@ function applyLanguage(lang = currentLanguage) {
   const titles = { 'index.html': ['Rimba Kita — Pantau Karhutla Indonesia', 'Rimba Kita — Indonesia Wildfire Monitoring'], 'pantauan.html': ['Pantauan — Rimba Kita', 'Monitoring — Rimba Kita'], 'udara.html': ['Kualitas Udara — Rimba Kita', 'Air Quality — Rimba Kita'], 'aksi.html': ['Aksi Warga — Rimba Kita', 'Community Action — Rimba Kita'], 'berita.html': ['Radar Media — Rimba Kita', 'Media Radar — Rimba Kita'] };
   if (titles[page]) document.title = titles[page][currentLanguage === 'en' ? 1 : 0];
   document.querySelectorAll('.language-switcher button').forEach((button) => { button.classList.toggle('active', button.dataset.lang === currentLanguage); button.setAttribute('aria-pressed', String(button.dataset.lang === currentLanguage)); });
+  const mobileButton = qs('#mobile-menu-button');
+  if (mobileButton) mobileButton.setAttribute('aria-label', mobileButton.getAttribute('aria-expanded') === 'true' ? t('Tutup menu', 'Close menu') : t('Buka menu', 'Open menu'));
 }
 
 function initLanguageSwitcher() {
@@ -84,6 +86,23 @@ function initLanguageSwitcher() {
   header.insertAdjacentHTML('beforeend', '<div class="language-switcher" aria-label="Language"><button type="button" data-lang="id">ID</button><span>/</span><button type="button" data-lang="en">EN</button></div>');
   header.querySelectorAll('.language-switcher button').forEach((button) => button.addEventListener('click', () => applyLanguage(button.dataset.lang)));
   applyLanguage();
+}
+
+function initMobileMenu() {
+  const header = qs('.site-header');
+  const nav = header?.querySelector('nav');
+  if (!header || !nav || qs('#mobile-menu-button')) return;
+  nav.id = nav.id || 'site-navigation';
+  nav.insertAdjacentHTML('beforebegin', '<button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-label="Buka menu" aria-controls="site-navigation" aria-expanded="false"><span></span><span></span><span></span></button>');
+  const button = qs('#mobile-menu-button');
+  const setOpen = (open) => {
+    header.classList.toggle('menu-open', open);
+    button.setAttribute('aria-expanded', String(open));
+    button.setAttribute('aria-label', open ? t('Tutup menu', 'Close menu') : t('Buka menu', 'Open menu'));
+  };
+  button.addEventListener('click', () => setOpen(!header.classList.contains('menu-open')));
+  nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+  document.addEventListener('click', (event) => { if (!header.contains(event.target)) setOpen(false); });
 }
 
 function updateAqiInfoCopy() {
@@ -283,6 +302,7 @@ initActionForm();
 initVerifiedActions();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
 document.title = document.title.replace(/Rimba Waspada/g, SITE_BRAND); const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); const textNodes = []; while (textWalker.nextNode()) textNodes.push(textWalker.currentNode); textNodes.forEach((node) => { if (node.nodeValue.includes('Rimba Waspada')) node.nodeValue = node.nodeValue.replace(/Rimba Waspada/g, SITE_BRAND); });
+initMobileMenu();
 initLanguageSwitcher();
 initAqiInfo();
 makeMap();
