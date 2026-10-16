@@ -198,9 +198,8 @@ async function initAir() {
     const homeOnly = !!qs('#home-aqi-grid') && !grid;
     if (!homeOnly) cities = await loadAllRegencies();
     const data = await fetchAirQuality();
-    const sensorCityNames = new Set(['Jakarta', 'Batam', 'Palembang', 'Medan', 'Dumai', 'Bandar Lampung', 'Padang', 'Palangka Raya', 'Palangkaraya', 'Pontianak', 'Pekanbaru', 'Jambi', 'Bengkulu', 'Banjarmasin', 'Samarinda', 'Balikpapan', 'Banjarbaru', 'Bandung', 'Semarang', 'Surabaya', 'Yogyakarta', 'Denpasar', 'Kupang', 'Palu', 'Manado', 'Makassar']);
     let iqairPayload = { configured: false, data: [] };
-    try { const iqairResponse = await fetch('/api/iqair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locations: data.filter((city) => sensorCityNames.has(city.name)) }) }); if (iqairResponse.ok) iqairPayload = await iqairResponse.json(); } catch { /* model data remains usable when IQAir is unavailable */ }
+    try { const iqairResponse = await fetch('/api/iqair'); if (iqairResponse.ok) iqairPayload = await iqairResponse.json(); } catch { /* model data remains usable when IQAir is unavailable */ }
     const iqairByName = new Map((iqairPayload.data || []).map((item) => [item.requestedName, item]));
     data.forEach((city) => { city.iqair = iqairByName.get(city.name) || null; });
     window.airData = data;
