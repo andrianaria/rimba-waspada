@@ -37,7 +37,9 @@ async function addPreview(article) {
     if (!response.ok) return article;
     const html = await response.text();
     const image = extractMeta(html, 'og:image');
-    return { ...article, image: image ? new URL(image, response.url).href : '' };
+    const resolvedImage = image ? new URL(image, response.url).href : '';
+    const isGenericGoogleImage = resolvedImage.includes('googleusercontent.com');
+    return { ...article, image: isGenericGoogleImage ? '' : resolvedImage };
   } catch {
     return article;
   }
