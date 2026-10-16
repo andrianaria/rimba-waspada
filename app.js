@@ -143,12 +143,12 @@ function makeMap() {
   const mapNote = qs('.map-note');
   if (mapNote) mapNote.innerHTML = '<strong>Hotspot & atmosfer NASA</strong><p>Titik merah adalah anomali panas dari NASA FIRMS. Layer warna adalah konsentrasi karbon monoksida NASA AIRS: merah lebih tinggi, biru/ungu lebih rendah.</p><p>Layer atmosfer bukan AQI dan tidak otomatis menunjukkan lokasi kebakaran.</p>';
   const map = L.map('map', { scrollWheelZoom: false, zoomControl: false }).setView([-1.8, 117.2], 4.7);
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.zoom({ position: 'topright' }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.82 }).addTo(map);
   const nasaDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const coLayer = L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi', { layers: 'AIRS_L2_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Day', format: 'image/png', transparent: true, opacity: .52, version: '1.1.1', time: nasaDate, attribution: 'NASA GIBS / AIRS' }).addTo(map);
   const mapOverlay = document.querySelector('#map')?.parentElement?.querySelector('.map-overlay');
-  if (mapOverlay) { mapOverlay.insertAdjacentHTML('beforeend', '<button class="overlay-chip map-toggle" id="co-toggle" type="button">Sembunyikan CO</button>'); qs('#co-toggle')?.addEventListener('click', (event) => { if (map.hasLayer(coLayer)) { map.removeLayer(coLayer); event.currentTarget.textContent = 'Tampilkan CO'; } else { coLayer.addTo(map); event.currentTarget.textContent = 'Sembunyikan CO'; } }); }
+  if (mapOverlay) { mapOverlay.insertAdjacentHTML('beforeend', '<button class="overlay-chip map-toggle" id="co-toggle" type="button">Sembunyikan CO</button><button class="overlay-chip map-toggle" id="map-note-toggle" type="button">Sembunyikan keterangan</button>'); qs('#co-toggle')?.addEventListener('click', (event) => { if (map.hasLayer(coLayer)) { map.removeLayer(coLayer); event.currentTarget.textContent = 'Tampilkan CO'; } else { coLayer.addTo(map); event.currentTarget.textContent = 'Sembunyikan CO'; } }); qs('#map-note-toggle')?.addEventListener('click', (event) => { mapNote?.classList.toggle('is-hidden'); event.currentTarget.textContent = mapNote?.classList.contains('is-hidden') ? 'Tampilkan keterangan' : 'Sembunyikan keterangan'; }); }
   const firesStatus = qs('#fires-status');
   fetch('/api/firms?days=1').then((response) => { if (!response.ok) throw new Error(`FIRMS HTTP ${response.status}`); return response.json(); }).then((rows) => {
     rows.slice(0, 3000).forEach((row) => { const lat = Number(row.latitude); const lon = Number(row.longitude); if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const confidence = row.confidence || 'n/a'; const marker = L.circleMarker([lat, lon], { radius: 5, color: '#fff', weight: 1, fillColor: '#e95748', fillOpacity: .83 }).addTo(map); marker.bindPopup(`<strong>Hotspot NASA FIRMS</strong><br />Kepercayaan: ${escapeHtml(confidence)}<br />${escapeHtml(row.acq_date || '')} ${escapeHtml(row.acq_time || '')} UTC`); });
@@ -163,9 +163,12 @@ async function makeAqiMap() {
   if (!sourceStrip) return;
   sourceStrip.insertAdjacentHTML('beforebegin', '<section class="aqi-map-section shell"><div class="section-heading compact"><div><p class="eyebrow">KUALITAS UDARA NASIONAL</p><h2>Indeks AQI<br /><em>di peta.</em></h2></div><div><p class="section-sidecopy">US AQI saat ini untuk seluruh kabupaten/kota Indonesia. Warna dan angka membantu melihat wilayah dengan kualitas udara yang perlu diperhatikan.</p><div class="data-status" id="aqi-map-status">Menyiapkan peta AQI…</div></div></div><div class="map-wrap aqi-map-wrap"><div id="aqi-map" aria-label="Peta indeks kualitas udara Indonesia"></div><div class="map-overlay"><span class="overlay-chip"><span class="pulse"></span> AQI LIVE</span><span class="overlay-chip muted">MODEL OPEN-METEO</span></div><div class="map-note"><strong>Catatan AQI</strong><p>Nilai US AQI dihitung dari data kualitas udara model Open-Meteo, bukan pembacaan langsung dari stasiun IQAir.</p></div></div><div class="map-footer aqi-map-footer"><div><i class="legend-dot low"></i>Baik ≤ 50</div><div><i class="legend-dot medium"></i>Sedang 51–100</div><div><i class="legend-dot high"></i>Tidak sehat &gt; 100</div><div>Data diperbarui saat halaman dimuat</div></div></section>');
   const map = L.map('aqi-map', { scrollWheelZoom: false, zoomControl: false }).setView([-1.8, 117.2], 4.7);
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.zoom({ position: 'topright' }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.82 }).addTo(map);
   const status = qs('#aqi-map-status');
+  const aqiMapNote = document.querySelector('.aqi-map-wrap .map-note');
+  const aqiMapOverlay = document.querySelector('.aqi-map-wrap .map-overlay');
+  if (aqiMapOverlay) { aqiMapOverlay.insertAdjacentHTML('beforeend', '<button class="overlay-chip map-toggle" id="aqi-map-note-toggle" type="button">Sembunyikan keterangan</button>'); qs('#aqi-map-note-toggle')?.addEventListener('click', (event) => { aqiMapNote?.classList.toggle('is-hidden'); event.currentTarget.textContent = aqiMapNote?.classList.contains('is-hidden') ? 'Tampilkan keterangan' : 'Sembunyikan keterangan'; }); }
   try {
     if (status) status.textContent = 'MEMUAT AQI 514 KABUPATEN/KOTA…';
     const regencies = await loadAllRegencies();
