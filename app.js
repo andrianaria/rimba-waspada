@@ -171,16 +171,26 @@ async function loadAllRegencies() {
 }
 
 async function fetchAirQuality() {
+  const hourKey = new Date().toISOString().slice(0, 13);
+  const cacheKey = `rimbakita-air-quality-v2-${hourKey}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch { /* browser storage may be unavailable */ }
   const output = [];
   for (let i = 0; i < cities.length; i += 40) {
     const batch = cities.slice(i, i + 40);
-    const params = new URLSearchParams({ latitude: batch.map((c) => c.lat).join(','), longitude: batch.map((c) => c.lon).join(','), current: 'us_aqi,pm2_5,pm10', timezone: 'auto', forecast_days: '1' });
+    const params = new URLSearchParams({ latitude: batch.map((c) => c.lat).join(','), longitude: batch.map((c) => c.lon).join(','), current: 'us_aqi,pm2_5,pm10', timezone: 'auto' });
     const response = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${params}`);
     if (!response.ok) continue;
     const payload = await response.json();
     (Array.isArray(payload) ? payload : [payload]).forEach((data, index) => output.push({ ...batch[index], aqi: data.current?.us_aqi ?? null, pm25: data.current?.pm2_5 ?? null, pm10: data.current?.pm10 ?? null, time: data.current?.time ?? null, timezone: data.timezone ?? 'Asia/Jakarta' }));
   }
   if (!output.length) throw new Error('Open-Meteo tidak mengembalikan data');
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify(output));
+    Object.keys(localStorage).filter((key) => key.startsWith('rimbakita-air-quality-v2-') && key !== cacheKey).forEach((key) => localStorage.removeItem(key));
+  } catch { /* browser storage may be unavailable */ }
   return output;
 }
 
@@ -227,6 +237,8 @@ async function initAir() {
     document.querySelectorAll('.aqi-source-card.sensor .aqi-label').forEach((label) => { label.innerHTML = 'US AQI<br />IQAir kota'; });
     document.querySelectorAll('.aqi-source-labels span:last-child').forEach((label) => { label.textContent = label.textContent.replace(/Stasiun IQAir tidak tersedia/g, 'AQI kota IQAir tidak tersedia').replace(/Stasiun IQAir/g, 'IQAir'); });
     renderHomeWorst(data, iqairPayload);
+    const rankedIqair = data.filter((city) => city.iqair?.aqi != null).sort((a, b) => b.iqair.aqi - a.iqair.aqi).slice(0, 5);
+    document.querySelectorAll('.home-aqi-card .home-aqi-value span').forEach((label, index) => { const modelAqi = rankedIqair[index]?.aqi; label.innerHTML = `US AQI · IQAir<br />${t('tingkat kota', 'city level')}<br /><small>US AQI CAMS: ${modelAqi ?? '—'}</small>`; });
     const worst = [...data].sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1))[0];
     if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI model · IQAir ${iqairPayload.configured ? `${iqairPayload.data?.length || 0} stasiun${iqairPayload.errors?.some((error) => error.includes('permission_denied')) ? ' · akses endpoint ditolak' : ''}` : 'belum terhubung'}`;
     const intro = document.querySelector('.air-page')?.previousElementSibling?.querySelector('p:not(.eyebrow)'); if (intro) intro.textContent = 'Dua sumber ditampilkan terpisah: US AQI berbasis model CAMS/Open-Meteo dan US AQI dari stasiun IQAir AirVisual bila tersedia.';
