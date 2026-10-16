@@ -101,8 +101,10 @@ function renderCities(data) {
 async function initAir() {
   const status = qs('#air-status');
   const homeStatus = qs('#home-status');
+  const grid = qs('#city-grid');
   try {
     if (status) status.textContent = 'MEMUAT 514 KABUPATEN/KOTA…';
+    if (grid) grid.innerHTML = '<p class="air-loading" aria-live="polite">Memuat indeks AQI saat ini untuk seluruh kabupaten/kota Indonesia…<br />Mohon tunggu sebentar.</p>';
     cities = await loadAllRegencies();
     const data = await fetchAirQuality();
     window.airData = data;
@@ -113,7 +115,6 @@ async function initAir() {
   } catch (error) {
     if (status) status.textContent = 'Gagal mengambil feed live · coba refresh';
     if (homeStatus) homeStatus.textContent = 'Feed live belum tersedia';
-    const grid = qs('#city-grid');
     if (grid) grid.innerHTML = `<p class="data-disclaimer">Feed live tidak dapat diambil saat ini. Detail teknis: ${escapeHtml(error.message)}</p>`;
   }
 }

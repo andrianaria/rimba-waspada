@@ -24,6 +24,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-se
 .hero-photo-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,25,24,.28),rgba(12,25,24,.04) 58%,rgba(12,25,24,.34))}
 .hero-art .hero-stat{color:#fff;text-shadow:0 1px 14px rgba(0,0,0,.4)}
 .hero-art .hero-stat .stat-label,.hero-art .hero-stat span:last-child{color:#f4eee3}
+body:has(#city-grid) .page-intro{display:none}
+.air-loading{grid-column:1/-1;min-height:150px;display:grid;place-items:center;border:1px solid var(--line);background:#fff;color:var(--muted);font-size:13px;text-align:center;padding:24px}
 .news-ticker{display:flex;align-items:center;gap:18px;min-height:44px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden}
 .news-ticker-label{flex:none;color:var(--teal);font-size:10px;font-weight:700;letter-spacing:.1em}
 .news-ticker-window{min-width:0;flex:1;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
