@@ -34,6 +34,13 @@ function isCurated(article) {
   return ['kompas.com', 'detik.com', 'tempo.co', 'cnnindonesia.com'].some((domain) => value.includes(domain));
 }
 
+const fallbackArticles = [
+  { title: 'Berita karhutla terbaru dari Kompas', url: 'https://www.kompas.com/tag/karhutla', domain: 'www.kompas.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari Kompas.' },
+  { title: 'Berita karhutla terbaru dari detikcom', url: 'https://www.detik.com/search/searchall?query=karhutla', domain: 'www.detik.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari detikcom.' },
+  { title: 'Berita karhutla terbaru dari Tempo', url: 'https://www.tempo.co/tag/karhutla', domain: 'www.tempo.co', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari Tempo.' },
+  { title: 'Berita karhutla terbaru dari CNN Indonesia', url: 'https://www.cnnindonesia.com/tag/karhutla', domain: 'www.cnnindonesia.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari CNN Indonesia.' }
+];
+
 export async function onRequestGet() {
   try {
     const rss = await fetchWithTimeout('https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id');
@@ -48,10 +55,10 @@ export async function onRequestGet() {
 
     const curatedArticles = articles.filter(isCurated);
     if (curatedArticles.length) articles = curatedArticles;
-    if (!articles.length) return new Response(JSON.stringify({ error: 'Indeks berita sedang tidak tersedia.', articles: [] }), { status: 502, headers: { 'content-type': 'application/json' } });
-    return new Response(JSON.stringify({ articles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=900, stale-while-revalidate=1800' } });
+    if (!articles.length) articles = fallbackArticles;
+    return new Response(JSON.stringify({ articles, stale: articles === fallbackArticles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=900, stale-while-revalidate=1800' } });
   } catch (error) {
     const message = error?.name === 'AbortError' ? 'Sumber berita terlalu lama merespons.' : 'Indeks berita tidak dapat dihubungi.';
-    return new Response(JSON.stringify({ error: message, articles: [] }), { status: 502, headers: { 'content-type': 'application/json' } });
+    return new Response(JSON.stringify({ error: message, articles: fallbackArticles, stale: true }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=900' } });
   }
 }
