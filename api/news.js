@@ -17,22 +17,21 @@ module.exports = async function handler(request, response) {
     return response.status(405).json({ error: 'Method tidak didukung.' });
   }
 
-  const query = encodeURIComponent('(karhutla OR "kebakaran hutan" OR "kebakaran lahan") Indonesia');
-  const endpoint = `https://api.gdeltproject.org/api/v2/doc/doc?query=${query}&mode=artlist&maxrecords=100&format=json&sort=datedesc&timespan=7d`;
-
   try {
-    const upstream = await fetch(endpoint);
-    const body = await upstream.text();
-    let payload = null;
-    if (upstream.ok) {
-      try { payload = JSON.parse(body); } catch { payload = null; }
-    }
+    const rss = await fetch('https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id');
+    let payload = rss.ok ? { articles: parseGoogleNews(await rss.text()) } : null;
 
     if (!payload?.articles?.length) {
-      const rss = await fetch('https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id');
-      if (!rss.ok) return response.status(502).json({ error: 'Indeks berita sedang tidak tersedia.' });
-      payload = { articles: parseGoogleNews(await rss.text()) };
+      const query = encodeURIComponent('(karhutla OR "kebakaran hutan" OR "kebakaran lahan") Indonesia');
+      const endpoint = `https://api.gdeltproject.org/api/v2/doc/doc?query=${query}&mode=artlist&maxrecords=100&format=json&sort=datedesc&timespan=7d`;
+      const upstream = await fetch(endpoint);
+      const body = await upstream.text();
+      if (upstream.ok) {
+        try { payload = JSON.parse(body); } catch { payload = null; }
+      }
     }
+
+    if (!payload?.articles?.length) return response.status(502).json({ error: 'Indeks berita sedang tidak tersedia.' });
 
     response.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=900');
     return response.status(200).json(payload);
