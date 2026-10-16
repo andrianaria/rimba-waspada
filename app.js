@@ -57,6 +57,7 @@ function applyLanguage(lang = currentLanguage) {
   const footerLink = qs('.site-footer a'); if (footerLink) footerLink.textContent = t('Kirim dukungan', 'Send support');
   const actionHeading = qs('.submit-heading h2'); if (actionHeading) actionHeading.innerHTML = currentLanguage === 'en' ? 'Register your action,<br /><em>we review its validity before it goes live.</em>' : 'Daftarkan aksimu,<br /><em>validitas akan dikurasi terlebih dahulu sebelum live.</em>';
   const verifiedHeading = qs('.verified-actions-heading h2'); if (verifiedHeading) verifiedHeading.innerHTML = currentLanguage === 'en' ? 'Action<br /><em>directory.</em>' : 'Daftar<br /><em>aksi.</em>';
+  updateAqiInfoCopy();
   const page = location.pathname.split('/').pop() || 'index.html';
   const introCopy = {
     'udara.html': ['Udara yang kita hirup,<br /><em>kita jaga bersama.</em>', 'Two live sources are shown separately: CAMS/Open-Meteo model US AQI and IQAir AirVisual station US AQI when available.', 'Compare CAMS model values with IQAir station readings without mixing sources, times, or methods.'],
@@ -83,6 +84,22 @@ function initLanguageSwitcher() {
   header.insertAdjacentHTML('beforeend', '<div class="language-switcher" aria-label="Language"><button type="button" data-lang="id">ID</button><span>/</span><button type="button" data-lang="en">EN</button></div>');
   header.querySelectorAll('.language-switcher button').forEach((button) => button.addEventListener('click', () => applyLanguage(button.dataset.lang)));
   applyLanguage();
+}
+
+function updateAqiInfoCopy() {
+  const panel = qs('#aqi-info-panel');
+  if (!panel) return;
+  panel.innerHTML = currentLanguage === 'en' ? '<button class="aqi-info-close" type="button" aria-label="Close explanation">×</button><strong>What do these air-quality numbers mean?</strong><p><b>Air quality from CAMS</b> is a numerical estimate from the Copernicus Atmosphere Monitoring Service, delivered here through Open-Meteo. It models pollution across an area, so it may differ from a nearby station.</p><p><b>Air quality from IQAir sensor</b> is a reading from an AirVisual monitoring station. It represents a specific sensor location and its latest reported measurement.</p><p>Both use the US AQI scale. Differences are normal because the source, location, update time, and method are different.</p>' : '<button class="aqi-info-close" type="button" aria-label="Tutup penjelasan">×</button><strong>Apa arti angka kualitas udara ini?</strong><p><b>Air quality from CAMS</b> adalah estimasi numerik dari Copernicus Atmosphere Monitoring Service yang ditampilkan melalui Open-Meteo. Data ini memodelkan polusi di suatu wilayah, sehingga bisa berbeda dari stasiun terdekat.</p><p><b>Air quality from IQAir sensor</b> adalah pembacaan dari stasiun pemantauan AirVisual. Angka ini mewakili lokasi sensor tertentu dan laporan pengukuran terbaru.</p><p>Keduanya menggunakan skala US AQI. Perbedaan angka wajar karena sumber, lokasi, waktu pembaruan, dan metodenya berbeda.</p>';
+  panel.querySelector('.aqi-info-close')?.addEventListener('click', () => { panel.hidden = true; qs('#aqi-info-button')?.setAttribute('aria-expanded', 'false'); });
+}
+
+function initAqiInfo() {
+  const heading = document.querySelector('.air-page .section-heading h2');
+  if (!heading || qs('#aqi-info-button')) return;
+  heading.insertAdjacentHTML('beforeend', ' <button class="aqi-info-button" id="aqi-info-button" type="button" aria-label="Informasi indeks kualitas udara" aria-expanded="false">?</button>');
+  heading.insertAdjacentHTML('afterend', '<div class="aqi-info-panel" id="aqi-info-panel" role="dialog" aria-live="polite" hidden></div>');
+  updateAqiInfoCopy();
+  qs('#aqi-info-button').addEventListener('click', () => { const panel = qs('#aqi-info-panel'); panel.hidden = !panel.hidden; qs('#aqi-info-button').setAttribute('aria-expanded', String(!panel.hidden)); });
 }
 async function fetchNews() { const response = await fetch('/api/news'); if (!response.ok) throw new Error(`Indeks berita HTTP ${response.status}`); const payload = await response.json(); return (payload.articles || []).map((article) => ({ ...article, source: sourceLabel(article.domain) })).filter((article) => article.source && article.url && article.title); }
 function formatNewsDate(value) { if (!value) return 'waktu tidak tersedia'; const match = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/); if (!match) return value; return new Date(`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}Z`).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }); }
@@ -267,6 +284,7 @@ initVerifiedActions();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
 document.title = document.title.replace(/Rimba Waspada/g, SITE_BRAND); const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); const textNodes = []; while (textWalker.nextNode()) textNodes.push(textWalker.currentNode); textNodes.forEach((node) => { if (node.nodeValue.includes('Rimba Waspada')) node.nodeValue = node.nodeValue.replace(/Rimba Waspada/g, SITE_BRAND); });
 initLanguageSwitcher();
+initAqiInfo();
 makeMap();
 makeAqiMap();
 initNewsTicker();
