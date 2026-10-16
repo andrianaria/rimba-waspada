@@ -42,7 +42,7 @@ function applyLanguage(lang = currentLanguage) {
   localStorage.setItem('rimbakita-language', currentLanguage);
   document.documentElement.lang = currentLanguage;
   const labels = {
-    'index.html': ['Beranda', 'Home'], 'pantauan.html': ['Pantauan', 'Monitoring'], 'udara.html': ['Kualitas udara', 'Air quality'], 'aksi.html': ['Aksi warga', 'Community action'], 'berita.html': ['Radar media', 'Media radar'],
+    'index.html': ['Beranda', 'Home'], 'pantauan.html': ['Pantauan', 'Monitoring'], 'udara.html': ['Kualitas udara', 'Air quality'], 'aksi.html': ['Aksi warga', 'Community action'], 'berita.html': ['Radar media', 'Media radar'], 'kontak.html': ['Kontak darurat', 'Emergency contacts'],
   };
   document.querySelectorAll('.site-header nav a').forEach((link) => { const key = Object.keys(labels).find((path) => link.getAttribute('href')?.split('#')[0].endsWith(path)); if (key) link.textContent = labels[key][currentLanguage === 'en' ? 1 : 0]; });
   const report = qs('.header-button'); if (report) report.textContent = t('Laporkan', 'Report');
@@ -73,7 +73,7 @@ function applyLanguage(lang = currentLanguage) {
     const methodCopy = intro?.nextElementSibling?.querySelector('.method-copy p');
     if (methodCopy && currentLanguage === 'en') methodCopy.textContent = introCopy[page][2];
   }
-  const titles = { 'index.html': ['Rimba Kita — Pantau Karhutla Indonesia', 'Rimba Kita — Indonesia Wildfire Monitoring'], 'pantauan.html': ['Pantauan — Rimba Kita', 'Monitoring — Rimba Kita'], 'udara.html': ['Kualitas Udara — Rimba Kita', 'Air Quality — Rimba Kita'], 'aksi.html': ['Aksi Warga — Rimba Kita', 'Community Action — Rimba Kita'], 'berita.html': ['Radar Media — Rimba Kita', 'Media Radar — Rimba Kita'] };
+  const titles = { 'index.html': ['Rimba Kita — Pantau Karhutla Indonesia', 'Rimba Kita — Indonesia Wildfire Monitoring'], 'pantauan.html': ['Pantauan — Rimba Kita', 'Monitoring — Rimba Kita'], 'udara.html': ['Kualitas Udara — Rimba Kita', 'Air Quality — Rimba Kita'], 'aksi.html': ['Aksi Warga — Rimba Kita', 'Community Action — Rimba Kita'], 'berita.html': ['Radar Media — Rimba Kita', 'Media Radar — Rimba Kita'], 'kontak.html': ['Kontak Darurat — Rimba Kita', 'Emergency Contacts — Rimba Kita'] };
   if (titles[page]) document.title = titles[page][currentLanguage === 'en' ? 1 : 0];
   document.querySelectorAll('.language-switcher button').forEach((button) => { button.classList.toggle('active', button.dataset.lang === currentLanguage); button.setAttribute('aria-pressed', String(button.dataset.lang === currentLanguage)); });
   const mobileButton = qs('#mobile-menu-button');
@@ -314,7 +314,7 @@ if (qs('#news-grid')) { initNewsFilters(); updateNewsSourceCopy(); qs('#news-sea
 if (qs('.action-section')) { document.querySelector('.page-intro')?.remove(); document.querySelector('.action-section')?.remove(); }
 initActionForm();
 initVerifiedActions();
-const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
+const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>'); if (nav && !nav.querySelector('a[href="kontak.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="kontak.html">Kontak darurat</a>');
 document.querySelectorAll('nav a[href="udara.html"]').forEach((element) => element.remove());
 const homeAqiSection = document.querySelector('.home-aqi-section'); if (homeAqiSection) { homeAqiSection.id = 'home-aqi-section'; document.querySelectorAll('a[href="udara.html"]').forEach((link) => { link.href = 'index.html#home-aqi-section'; }); }
 document.querySelectorAll('.header-button, .site-footer a').forEach((element) => element.remove());
