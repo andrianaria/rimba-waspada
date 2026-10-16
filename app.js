@@ -139,7 +139,11 @@ async function initAir() {
 function makeMap() {
   if (!qs('#map') || !window.L) return;
   const mapIntro = document.querySelector('.page-intro>p:not(.eyebrow)');
-  if (mapIntro) mapIntro.textContent = 'NASA FIRMS mendeteksi titik panas dari citra satelit secara near-real-time. Satu titik adalah sinyal awal, bukan bukti kebakaran yang sudah terkonfirmasi.';
+  const mapTitle = document.querySelector('.page-intro h1');
+  if (mapTitle) mapTitle.textContent = 'Pantau Udara Kita';
+  if (mapIntro) mapIntro.textContent = 'Data NASA FIRMS dan US AQI membantu kita melihat hotspot, kualitas udara, dan paparan karbon monoksida (CO) di sekitar Indonesia. Data ini adalah sinyal pemantauan, bukan pengganti pemeriksaan lapangan.';
+  const mapSource = document.querySelector('.map-section')?.nextElementSibling;
+  if (mapSource?.classList.contains('source-strip')) mapSource.innerHTML = '<div><span class="eyebrow">MEMAHAMI DATA</span><strong>Hotspot, CO, dan AQI</strong><div class="data-guide-grid"><div><b>Hotspot</b><p>Anomali panas yang terdeteksi satelit NASA FIRMS. Hotspot bukan otomatis berarti kebakaran; awan dan kondisi lahan bisa memengaruhi deteksi.</p></div><div><b>CO</b><p>Karbon monoksida adalah gas hasil pembakaran. Di peta NASA AIRS, CO membantu melihat sebaran asap dan atmosfer—ini bukan CO₂ dan bukan AQI.</p></div><div><b>US AQI</b><p>Indeks untuk menerjemahkan tingkat polusi udara menjadi skala risiko kesehatan. Angka lebih tinggi berarti udara lebih perlu diwaspadai.</p></div></div></div><a class="button button-outline" href="https://firms.modaps.eosdis.nasa.gov/web-services/" target="_blank" rel="noreferrer">Tentang NASA FIRMS ↗</a>';
   const mapNote = qs('.map-note');
   if (mapNote) mapNote.innerHTML = '<strong>Hotspot & atmosfer NASA</strong><p>Titik merah adalah anomali panas dari NASA FIRMS. Layer warna adalah konsentrasi karbon monoksida NASA AIRS: merah lebih tinggi, biru/ungu lebih rendah.</p><p>Layer atmosfer bukan AQI dan tidak otomatis menunjukkan lokasi kebakaran.</p>';
   const map = L.map('map', { scrollWheelZoom: false, zoomControl: false }).setView([-1.8, 117.2], 4.7);
