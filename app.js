@@ -48,8 +48,8 @@ function applyLanguage(lang = currentLanguage) {
   const report = qs('.header-button'); if (report) report.textContent = t('Laporkan', 'Report');
   const tickerLabel = qs('.news-ticker-label'); if (tickerLabel) tickerLabel.textContent = t('UPDATE KARHUTLA', 'WILDFIRE UPDATE');
   const tickerLink = qs('.news-ticker-link'); if (tickerLink) tickerLink.textContent = t('Semua berita ↗', 'All news ↗');
-  const heroTitle = qs('.hero h1'); if (heroTitle) heroTitle.innerHTML = currentLanguage === 'en' ? 'Neighbors help neighbors.<br /><em>Stay alert and protect your health.</em>' : 'Warga bantu warga.<br /><em>Selalu waspada dan jaga kesehatan.</em>';
-  const heroLede = qs('.hero-lede'); if (heroLede) heroLede.textContent = t('Pantau karhutla, kualitas udara, dan informasi penting di sekitar kita.', 'Monitor wildfires, air quality, and important information around us.');
+  const heroTitle = qs('.hero h1'); if (heroTitle) heroTitle.innerHTML = currentLanguage === 'en' ? 'Protect forests.<br /><em>Protect life.</em>' : 'Menjaga hutan.<br /><em>Menjaga kehidupan.</em>';
+  const heroLede = qs('.hero-lede'); if (heroLede) heroLede.textContent = t('Warga bantu warga. Selalu waspada dan jaga kesehatan.', 'Neighbors help neighbors. Stay alert and protect your health.');
   const heroPrimary = qs('.hero-actions .button-primary'); if (heroPrimary) heroPrimary.innerHTML = `${t('Buka peta pantauan', 'Open monitoring map')} <span>↗</span>`;
   const heroSecondary = qs('.hero-actions .text-link'); if (heroSecondary) heroSecondary.innerHTML = `${t('Cek udara kota', 'Check city air')} <span>→</span>`;
   const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.textContent = t('Indeks saat ini', 'Current index');
