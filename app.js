@@ -27,6 +27,7 @@ let cities = [
 ];
 
 const qs = (selector) => document.querySelector(selector);
+const SITE_BRAND = 'Rimba Kita';
 const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 const trustedSources = [
   { match: 'antaranews.com', label: 'ANTARA' }, { match: 'kompas.com', label: 'Kompas' }, { match: 'tempo.co', label: 'Tempo' },
@@ -126,5 +127,5 @@ if (qs('#city-grid')) { qs('#city-search').addEventListener('input', () => rende
 if (qs('#news-grid')) { qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
 initActionForm();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
-document.title = document.title.replace(/Rimba Waspada/g, 'Rimba Kita'); const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); const textNodes = []; while (textWalker.nextNode()) textNodes.push(textWalker.currentNode); textNodes.forEach((node) => { if (node.nodeValue.includes('Rimba Waspada')) node.nodeValue = node.nodeValue.replace(/Rimba Waspada/g, 'Rimba Kita'); if (node.nodeValue.includes('MAP_KEY')) node.nodeValue = node.nodeValue.replace(/Hotspot aktif dari NASA FIRMS akan tampil di sini setelah FIRMS_MAP_KEY dikonfigurasi\./g, 'Hotspot aktif dari NASA FIRMS akan tampil di sini saat feed live terhubung.').replace(/MENUNGGU MAP_KEY/g, 'MENUNGGU FEED LIVE').replace(/FIRMS_MAP_KEY/g, 'feed live'); });
+document.title = document.title.replace(/Rimba Waspada/g, SITE_BRAND); const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); const textNodes = []; while (textWalker.nextNode()) textNodes.push(textWalker.currentNode); textNodes.forEach((node) => { if (node.nodeValue.includes('Rimba Waspada')) node.nodeValue = node.nodeValue.replace(/Rimba Waspada/g, SITE_BRAND); });
 makeMap();
