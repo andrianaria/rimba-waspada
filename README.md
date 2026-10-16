@@ -1,4 +1,4 @@
-# Rimba Waspada
+# RimbaKita
 
 Dashboard publik untuk membantu warga Indonesia memahami risiko karhutla, kualitas udara, dan langkah dukungan yang aman.
 
