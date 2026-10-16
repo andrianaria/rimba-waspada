@@ -9,11 +9,30 @@ function parseGoogleNews(xml) {
   }).filter((article) => article.title && article.url && article.domain);
 }
 
+function parseRss(xml, defaultDomain = '') {
+  return [...String(xml || '').matchAll(/<(?:item|entry)>([\s\S]*?)<\/(?:item|entry)>/gi)].map((match) => {
+    const block = match[1];
+    const field = (tag) => decodeXml(block.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, 'i'))?.[1]);
+    const linkTag = block.match(/<link(?:\s[^>]*)?href="([^"]+)"[^>]*>/i);
+    const url = field('link') || linkTag?.[1] || '';
+    return {
+      title: field('title'),
+      url,
+      domain: defaultDomain,
+      seendate: field('pubDate') || field('published') || field('updated'),
+      description: field('description') || field('summary') || field('content')
+    };
+  }).filter((article) => article.title && article.url && article.domain);
+}
+
 async function fetchWithTimeout(url, timeoutMs = 12000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetch(url, { signal: controller.signal });
+    return await fetch(url, {
+      signal: controller.signal,
+      headers: { accept: 'application/rss+xml, application/xml, text/xml, text/html;q=0.8', 'user-agent': 'RimbaKita-News/1.0' }
+    });
   } finally {
     clearTimeout(timer);
   }
@@ -43,8 +62,34 @@ const fallbackArticles = [
 
 export async function onRequestGet() {
   try {
-    const rss = await fetchWithTimeout('https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id');
-    let articles = rss.ok ? parseGoogleNews(await rss.text()) : [];
+    const queries = [
+      ['Kompas', 'site:kompas.com karhutla Indonesia'],
+      ['detikcom', 'site:detik.com karhutla Indonesia'],
+      ['Tempo', 'site:tempo.co karhutla Indonesia'],
+      ['CNN Indonesia', 'site:cnnindonesia.com karhutla Indonesia']
+    ];
+    const googleResults = await Promise.allSettled(queries.map(async ([source, query]) => {
+      const endpoint = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`;
+      const response = await fetchWithTimeout(endpoint);
+      if (!response.ok) return [];
+      return parseGoogleNews(await response.text()).map((article) => ({ ...article, source }));
+    }));
+    let articles = googleResults.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
+
+    if (!articles.length) {
+      const directFeeds = [
+        ['Tempo', 'https://rss.tempo.co/nasional', 'tempo.co'],
+        ['CNN Indonesia', 'https://www.cnnindonesia.com/nasional/rss', 'cnnindonesia.com']
+      ];
+      const directResults = await Promise.allSettled(directFeeds.map(async ([source, endpoint, domain]) => {
+        const response = await fetchWithTimeout(endpoint);
+        if (!response.ok) return [];
+        return parseRss(await response.text(), domain)
+          .filter((article) => /karhutla|kebakaran hutan|kebakaran lahan|asap/i.test(`${article.title} ${article.description}`))
+          .map((article) => ({ ...article, source }));
+      }));
+      articles = directResults.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
+    }
 
     if (!articles.length) {
       const query = encodeURIComponent('(karhutla OR "kebakaran hutan" OR "kebakaran lahan") Indonesia');
@@ -55,6 +100,7 @@ export async function onRequestGet() {
 
     const curatedArticles = articles.filter(isCurated);
     if (curatedArticles.length) articles = curatedArticles;
+    articles = [...new Map(articles.map((article) => [article.url, article])).values()];
     if (!articles.length) articles = fallbackArticles;
     return new Response(JSON.stringify({ articles, stale: articles === fallbackArticles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=900, stale-while-revalidate=1800' } });
   } catch (error) {
