@@ -52,8 +52,8 @@ function applyLanguage(lang = currentLanguage) {
   const heroLede = qs('.hero-lede'); if (heroLede) heroLede.textContent = t('Warga bantu warga, selalu waspada dan jaga kesehatan.', 'Neighbors helping neighbors: stay alert and protect your health.');
   const heroPrimary = qs('.hero-actions .button-primary'); if (heroPrimary) heroPrimary.innerHTML = `${t('Buka peta pantauan', 'Open monitoring map')} <span>↗</span>`;
   const heroSecondary = qs('.hero-actions .text-link'); if (heroSecondary) heroSecondary.innerHTML = `${t('Cek udara kota', 'Check city air')} <span>→</span>`;
-  const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.innerHTML = currentLanguage === 'en' ? '5 cities with the<br /><em>highest IQAir AQI.</em>' : '5 kota dengan<br /><em>AQI IQAir tertinggi.</em>';
-  const homeCopy = qs('.home-aqi-section .section-sidecopy'); if (homeCopy) homeCopy.textContent = t('Peringkat berdasarkan Overall US AQI tingkat kota dari IQAir.', 'Ranked by IQAir city-level Overall US AQI.');
+  const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.textContent = t('Indeks saat ini', 'Current index');
+  const homeCopy = qs('.home-aqi-section .section-sidecopy'); if (homeCopy) homeCopy.textContent = t('Data seluruh kabupaten/kota: US AQI model CAMS dan Overall US AQI tingkat kota dari IQAir bila tersedia.', 'All regencies and cities: CAMS model US AQI and IQAir city-level Overall US AQI when available.');
   const footerLink = qs('.site-footer a'); if (footerLink) footerLink.textContent = t('Kirim dukungan', 'Send support');
   const actionHeading = qs('.submit-heading h2'); if (actionHeading) actionHeading.innerHTML = currentLanguage === 'en' ? 'Register your action,<br /><em>we review its validity before it goes live.</em>' : 'Daftarkan aksimu,<br /><em>validitas akan dikurasi terlebih dahulu sebelum live.</em>';
   const verifiedHeading = qs('.verified-actions-heading h2'); if (verifiedHeading) verifiedHeading.innerHTML = currentLanguage === 'en' ? 'Action<br /><em>directory.</em>' : 'Daftar<br /><em>aksi.</em>';
@@ -172,7 +172,7 @@ async function loadAllRegencies() {
 
 async function fetchAirQuality() {
   const hourKey = new Date().toISOString().slice(0, 13);
-  const cacheKey = `rimbakita-air-quality-v2-${hourKey}`;
+  const cacheKey = `rimbakita-air-quality-v3-${hourKey}-${cities.length}`;
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) return JSON.parse(cached);
@@ -189,9 +189,25 @@ async function fetchAirQuality() {
   if (!output.length) throw new Error('Open-Meteo tidak mengembalikan data');
   try {
     localStorage.setItem(cacheKey, JSON.stringify(output));
-    Object.keys(localStorage).filter((key) => key.startsWith('rimbakita-air-quality-v2-') && key !== cacheKey).forEach((key) => localStorage.removeItem(key));
+    Object.keys(localStorage).filter((key) => key.startsWith('rimbakita-air-quality-v') && key !== cacheKey).forEach((key) => localStorage.removeItem(key));
   } catch { /* browser storage may be unavailable */ }
   return output;
+}
+
+function moveAirQualityToHome() {
+  if (!location.pathname.endsWith('/index.html') && location.pathname !== '/') return;
+  const section = qs('.home-aqi-section');
+  const grid = qs('#home-aqi-grid');
+  if (!section || !grid) return;
+  section.classList.remove('home-aqi-section');
+  section.classList.add('air-section', 'air-page');
+  const eyebrow = section.querySelector('.eyebrow');
+  const sidecopy = section.querySelector('.section-sidecopy');
+  if (eyebrow) eyebrow.textContent = 'KABUPATEN/KOTA INDONESIA';
+  if (sidecopy) sidecopy.outerHTML = '<div class="filter-row"><label for="city-search">Cari kota</label><input id="city-search" type="search" placeholder="Jakarta, Pontianak…" /></div>';
+  grid.id = 'city-grid';
+  grid.className = 'air-grid';
+  grid.innerHTML = '<p class="air-loading" aria-live="polite">Memuat indeks AQI saat ini untuk seluruh kabupaten/kota Indonesia…<br />Mohon tunggu sebentar.</p>';
 }
 
 function renderCities(data) {
@@ -312,6 +328,7 @@ async function makeAqiMap() {
 if (qs('#city-grid') || qs('#home-aqi-grid')) { qs('#city-search')?.addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
 if (qs('#news-grid')) { initNewsFilters(); updateNewsSourceCopy(); qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
 if (qs('.action-section')) { document.querySelector('.page-intro')?.remove(); document.querySelector('.action-section')?.remove(); }
+moveAirQualityToHome();
 initActionForm();
 initVerifiedActions();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>'); if (nav && !nav.querySelector('a[href="kontak.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="kontak.html">Kontak darurat</a>');
