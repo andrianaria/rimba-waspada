@@ -149,10 +149,10 @@ async function fetchNews() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    const response = await fetch('/api/news', { signal: controller.signal });
+    const response = await fetch('/api/news?view=curated', { signal: controller.signal });
     if (!response.ok) throw new Error(`Indeks berita HTTP ${response.status}`);
     const payload = await response.json();
-    return (payload.articles || []).map((article) => ({ ...article, source: articleSource(article) })).filter((article) => article.source && article.url && article.title);
+    return (payload.articles || []).map((article) => ({ ...article, source: articleSource(article) || article.domain || 'Media' })).filter((article) => article.url && article.title);
   } catch (error) {
     if (error?.name === 'AbortError') throw new Error('Permintaan berita timeout. Coba muat ulang.');
     throw error;

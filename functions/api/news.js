@@ -29,6 +29,11 @@ function parseGdelt(payload) {
   })).filter((article) => article.title && article.url && article.domain);
 }
 
+function isCurated(article) {
+  const value = `${article.domain || ''} ${article.url || ''}`.toLowerCase();
+  return ['kompas.com', 'detik.com', 'tempo.co', 'cnnindonesia.com'].some((domain) => value.includes(domain));
+}
+
 export async function onRequestGet() {
   try {
     const rss = await fetchWithTimeout('https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id');
@@ -41,6 +46,7 @@ export async function onRequestGet() {
       if (upstream.ok) articles = parseGdelt(await upstream.json());
     }
 
+    articles = articles.filter(isCurated);
     if (!articles.length) return new Response(JSON.stringify({ error: 'Indeks berita sedang tidak tersedia.', articles: [] }), { status: 502, headers: { 'content-type': 'application/json' } });
     return new Response(JSON.stringify({ articles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=900, stale-while-revalidate=1800' } });
   } catch (error) {
