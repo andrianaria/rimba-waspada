@@ -43,6 +43,11 @@ function initActionForm() { const form = qs('#action-form'); if (!form) return; 
     window.open(issueUrl, '_blank', 'noopener'); qs('#form-note').textContent = 'Draft issue sudah dibuka. Lengkapi dan kirim di GitHub agar masuk antrean review.';
   }); }
 
+function issueField(body, label) { return body.match(new RegExp(`\\*\\*${label}:\\*\\*\\s*(.+)`))?.[1]?.trim() || ''; }
+function verifiedUrl(value) { try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; } }
+function renderVerifiedActions(issues) { const grid = qs('#verified-actions-grid'); if (!grid) return; const cards = issues.map((issue) => { const body = issue.body || ''; const donation = verifiedUrl(issueField(body, 'URL donasi')); const evidence = verifiedUrl(issueField(body, 'URL bukti kegiatan')); const name = issueField(body, 'Nama aksi') || issue.title.replace(/^\[KURASI AKSI\]\s*/i, ''); const organization = issueField(body, 'Organisasi'); if (!donation && !evidence) return ''; return `<article class="verified-action-card"><div class="verified-action-top"><span class="eyebrow">TERVERIFIKASI</span><span class="verified-action-date">${escapeHtml(new Date(issue.updated_at).toLocaleDateString('id-ID', { dateStyle: 'medium' }))}</span></div><h3>${escapeHtml(name)}</h3>${organization ? `<p class="verified-action-org">${escapeHtml(organization)}</p>` : ''}<div class="verified-action-links">${donation ? `<a href="${escapeHtml(donation)}" target="_blank" rel="noreferrer">URL donasi resmi <span>↗</span></a>` : ''}${evidence ? `<a href="${escapeHtml(evidence)}" target="_blank" rel="noreferrer">Bukti kegiatan <span>↗</span></a>` : ''}</div></article>`; }).filter(Boolean).join(''); grid.innerHTML = cards || '<p class="data-disclaimer">Belum ada aksi terverifikasi yang dipublikasikan.</p>'; }
+async function initVerifiedActions() { const grid = qs('#verified-actions-grid'); const status = qs('#verified-actions-status'); if (!grid) return; try { const response = await fetch('https://api.github.com/repos/andrianaria/rimba-waspada/issues?state=open&labels=aksi-terverifikasi&per_page=30'); if (!response.ok) throw new Error(`GitHub HTTP ${response.status}`); const issues = (await response.json()).filter((issue) => !issue.pull_request); renderVerifiedActions(issues); if (status) status.textContent = `${issues.length} aksi terverifikasi`; } catch (error) { if (status) status.textContent = 'Daftar aksi belum tersedia'; grid.innerHTML = '<p class="data-disclaimer">Daftar aksi terverifikasi belum dapat dimuat saat ini.</p>'; } }
+
 function aqiStatus(aqi) {
   if (aqi == null) return { label: 'N/A', tone: 'moderate' };
   if (aqi <= 50) return { label: 'Baik', tone: 'good' };
@@ -126,6 +131,7 @@ function makeMap() {
 if (qs('#city-grid')) { qs('#city-search').addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
 if (qs('#news-grid')) { qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
 initActionForm();
+initVerifiedActions();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
 document.title = document.title.replace(/Rimba Waspada/g, SITE_BRAND); const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); const textNodes = []; while (textWalker.nextNode()) textNodes.push(textWalker.currentNode); textNodes.forEach((node) => { if (node.nodeValue.includes('Rimba Waspada')) node.nodeValue = node.nodeValue.replace(/Rimba Waspada/g, SITE_BRAND); });
 makeMap();
