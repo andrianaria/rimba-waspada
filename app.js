@@ -28,12 +28,60 @@ let cities = [
 
 const qs = (selector) => document.querySelector(selector);
 const SITE_BRAND = 'Rimba Kita';
+let currentLanguage = localStorage.getItem('rimbakita-language') || 'id';
+function t(id, en) { return currentLanguage === 'en' ? en : id; }
 const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
 const trustedSources = [
   { match: 'kompas.com', label: 'Kompas' }, { match: 'detik.com', label: 'detikcom' },
   { match: 'tempo.co', label: 'Tempo' }, { match: 'cnnindonesia.com', label: 'CNN Indonesia' },
 ];
 function sourceLabel(domain = '') { return trustedSources.find((source) => domain.toLowerCase().includes(source.match))?.label || null; }
+
+function applyLanguage(lang = currentLanguage) {
+  currentLanguage = lang === 'en' ? 'en' : 'id';
+  localStorage.setItem('rimbakita-language', currentLanguage);
+  document.documentElement.lang = currentLanguage;
+  const labels = {
+    'index.html': ['Beranda', 'Home'], 'pantauan.html': ['Pantauan', 'Monitoring'], 'udara.html': ['Kualitas udara', 'Air quality'], 'aksi.html': ['Aksi warga', 'Community action'], 'berita.html': ['Radar media', 'Media radar'],
+  };
+  document.querySelectorAll('.site-header nav a').forEach((link) => { const key = Object.keys(labels).find((path) => link.getAttribute('href')?.split('#')[0].endsWith(path)); if (key) link.textContent = labels[key][currentLanguage === 'en' ? 1 : 0]; });
+  const report = qs('.header-button'); if (report) report.textContent = t('Laporkan', 'Report');
+  const tickerLabel = qs('.news-ticker-label'); if (tickerLabel) tickerLabel.textContent = t('UPDATE KARHUTLA', 'WILDFIRE UPDATE');
+  const tickerLink = qs('.news-ticker-link'); if (tickerLink) tickerLink.textContent = t('Semua berita ↗', 'All news ↗');
+  const heroTitle = qs('.hero h1'); if (heroTitle) heroTitle.innerHTML = currentLanguage === 'en' ? 'Protecting forests.<br /><em>Protecting life.</em>' : 'Menjaga hutan.<br /><em>Menjaga kehidupan.</em>';
+  const heroLede = qs('.hero-lede'); if (heroLede) heroLede.textContent = t('Informasi yang membantu kita saling menjaga saat api, asap, dan udara buruk datang.', 'Clear information to help us look after one another when fire, smoke, and unhealthy air arrive.');
+  const heroPrimary = qs('.hero-actions .button-primary'); if (heroPrimary) heroPrimary.innerHTML = `${t('Buka peta pantauan', 'Open monitoring map')} <span>↗</span>`;
+  const heroSecondary = qs('.hero-actions .text-link'); if (heroSecondary) heroSecondary.innerHTML = `${t('Cek udara kota', 'Check city air')} <span>→</span>`;
+  const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.innerHTML = currentLanguage === 'en' ? '5 cities with the<br /><em>highest sensor AQI.</em>' : '5 kota dengan udara<br /><em>paling perlu diwaspadai.</em>';
+  const homeCopy = qs('.home-aqi-section .section-sidecopy'); if (homeCopy) homeCopy.textContent = t('Peringkat berdasarkan US AQI dari sensor IQAir AirVisual bila tersedia.', 'Ranked by US AQI from IQAir AirVisual sensors when available.');
+  const footerLink = qs('.site-footer a'); if (footerLink) footerLink.textContent = t('Kirim dukungan', 'Send support');
+  const page = location.pathname.split('/').pop() || 'index.html';
+  const introCopy = {
+    'udara.html': ['Udara yang kita hirup,<br /><em>kita jaga bersama.</em>', 'Two live sources are shown separately: CAMS/Open-Meteo model US AQI and IQAir AirVisual station US AQI when available.', 'Compare CAMS model values with IQAir station readings without mixing sources, times, or methods.'],
+    'aksi.html': ['Informasi adalah<br /><em>pertolongan pertama.</em>', 'We can help without adding risk: protect yourself, send useful reports, and support official channels.', 'Close windows, use a suitable mask, and limit outdoor activity when air quality worsens.'],
+    'berita.html': ['Suara publik,<br /><em>dipantau bersama.</em>', 'Follow the latest wildfire coverage from a curated list of Indonesian media domains. Read the full article on the publisher’s site; we do not copy the article text.', 'Kompas, detikcom, Tempo, and CNN Indonesia are monitored for relevant updates.'],
+  };
+  if (introCopy[page]) {
+    const intro = document.querySelector('.page-intro');
+    const heading = intro?.querySelector('h1');
+    const copy = intro?.querySelector('p:not(.eyebrow)');
+    if (heading && currentLanguage === 'en') heading.innerHTML = introCopy[page][0].replace('Udara yang kita hirup,', 'The air we breathe,').replace('kita jaga bersama.', 'we care for together.').replace('Informasi adalah', 'Information is').replace('pertolongan pertama.', 'first aid.').replace('Suara publik,', 'Public voices,').replace('dipantau bersama.', 'followed together.');
+    if (copy && currentLanguage === 'en') copy.textContent = introCopy[page][1];
+    const methodCopy = intro?.nextElementSibling?.querySelector('.method-copy p');
+    if (methodCopy && currentLanguage === 'en') methodCopy.textContent = introCopy[page][2];
+  }
+  const titles = { 'index.html': ['Rimba Kita — Pantau Karhutla Indonesia', 'Rimba Kita — Indonesia Wildfire Monitoring'], 'pantauan.html': ['Pantauan — Rimba Kita', 'Monitoring — Rimba Kita'], 'udara.html': ['Kualitas Udara — Rimba Kita', 'Air Quality — Rimba Kita'], 'aksi.html': ['Aksi Warga — Rimba Kita', 'Community Action — Rimba Kita'], 'berita.html': ['Radar Media — Rimba Kita', 'Media Radar — Rimba Kita'] };
+  if (titles[page]) document.title = titles[page][currentLanguage === 'en' ? 1 : 0];
+  document.querySelectorAll('.language-switcher button').forEach((button) => { button.classList.toggle('active', button.dataset.lang === currentLanguage); button.setAttribute('aria-pressed', String(button.dataset.lang === currentLanguage)); });
+}
+
+function initLanguageSwitcher() {
+  const header = qs('.site-header');
+  if (!header || header.querySelector('.language-switcher')) return;
+  header.insertAdjacentHTML('beforeend', '<div class="language-switcher" aria-label="Language"><button type="button" data-lang="id">ID</button><span>/</span><button type="button" data-lang="en">EN</button></div>');
+  header.querySelectorAll('.language-switcher button').forEach((button) => button.addEventListener('click', () => applyLanguage(button.dataset.lang)));
+  applyLanguage();
+}
 async function fetchNews() { const response = await fetch('/api/news'); if (!response.ok) throw new Error(`Indeks berita HTTP ${response.status}`); const payload = await response.json(); return (payload.articles || []).map((article) => ({ ...article, source: sourceLabel(article.domain) })).filter((article) => article.source && article.url && article.title); }
 function formatNewsDate(value) { if (!value) return 'waktu tidak tersedia'; const match = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/); if (!match) return value; return new Date(`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}Z`).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }); }
 function renderNews(articles) { const grid = qs('#news-grid'); if (!grid) return; const query = (qs('#news-search')?.value || '').toLowerCase(); const source = document.querySelector('.filter-button.active')?.dataset.source || 'all'; const filtered = articles.filter((article) => (source === 'all' || article.source === source) && `${article.title} ${article.domain}`.toLowerCase().includes(query)); grid.innerHTML = filtered.length ? filtered.slice(0, 60).map((article) => `<a class="news-card" href="${escapeHtml(article.url)}" target="_blank" rel="noreferrer"><div class="news-card-top"><span class="news-source">${escapeHtml(article.source)}</span><span class="news-date">${escapeHtml(formatNewsDate(article.seendate))}</span></div><h3>${escapeHtml(article.title)}</h3><div class="news-card-bottom"><span>${escapeHtml(article.domain)}</span><strong>Baca artikel ↗</strong></div></a>`).join('') : '<p class="data-disclaimer">Belum ada artikel dari domain kurasi pada hasil live saat ini. Coba kata kunci lain atau buka situs sumber langsung.'; }
@@ -106,6 +154,21 @@ function renderCities(data) {
   grid.innerHTML = filtered.length ? filtered.map((city) => { const status = aqiStatus(city.aqi); const sensorStatus = aqiStatus(city.iqair?.aqi); return `<article class="air-card"><div class="air-card-top"><div><div class="city-name">${escapeHtml(city.name)}</div><div class="province">${escapeHtml(city.province)}</div></div><span class="air-badge ${status.tone}">${status.label}</span></div><div class="aqi-dual"><div class="aqi-source-card"><strong class="aqi-number">${city.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />model CAMS</span></div><div class="aqi-source-card sensor"><strong class="aqi-number">${city.iqair?.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />IQAir sensor</span></div></div><div class="aqi-source-labels"><span>Open-Meteo</span><span>${city.iqair ? `${escapeHtml(city.iqair.station || 'Stasiun IQAir')} · ${escapeHtml(sensorStatus.label)}` : 'Stasiun IQAir tidak tersedia'}</span></div><div class="pm">PM2.5 model · ${city.pm25 == null ? '—' : `${Number(city.pm25).toFixed(1)} µg/m³`} · live</div><div class="card-time">${city.time ? `${city.time.replace('T', ' ')} · ${city.timezone}` : 'waktu tidak tersedia'}</div></article>`; }).join('') : '<p class="data-disclaimer">Kota tidak ditemukan.</p>';
 }
 
+function renderHomeWorst(data, iqairPayload) {
+  const grid = qs('#home-aqi-grid');
+  if (!grid) return;
+  const ranked = data.filter((city) => city.iqair?.aqi != null).sort((a, b) => b.iqair.aqi - a.iqair.aqi).slice(0, 5);
+  if (!iqairPayload.configured) {
+    grid.innerHTML = `<div class="home-aqi-empty"><strong>${t('IQAir belum terhubung', 'IQAir is not connected yet')}</strong><p>${t('Peringkat ini hanya menampilkan data sensor IQAir. Tambahkan IQAIR_API_KEY di Vercel Production agar lima kota dengan AQI tertinggi dapat ditampilkan.', 'This ranking only uses IQAir sensor data. Add IQAIR_API_KEY in Vercel Production to show the five cities with the highest AQI.')}</p><a class="text-link" href="udara.html">${t('Lihat data model CAMS', 'View CAMS model data')} <span>→</span></a></div>`;
+    return;
+  }
+  if (!ranked.length) {
+    grid.innerHTML = `<div class="home-aqi-empty"><strong>${t('Data sensor belum tersedia', 'Sensor data is not available yet')}</strong><p>${t('Belum ada stasiun IQAir yang mengirim pembacaan untuk kota-kota yang dipantau.', 'No IQAir station is currently returning readings for the monitored cities.')}</p></div>`;
+    return;
+  }
+  grid.innerHTML = ranked.map((city, index) => { const status = aqiStatus(city.iqair.aqi); return `<article class="home-aqi-card"><div class="home-aqi-rank">0${index + 1}</div><div class="home-aqi-main"><div><strong>${escapeHtml(city.name)}</strong><span>${escapeHtml(city.province)}</span></div><span class="air-badge ${status.tone}">${escapeHtml(status.label)}</span></div><div class="home-aqi-value"><b>${city.iqair.aqi}</b><span>US AQI · IQAir<br />${escapeHtml(city.iqair.station || t('sensor terdekat', 'nearest sensor'))}</span></div><div class="home-aqi-time">${escapeHtml(city.iqair.timestamp ? new Date(city.iqair.timestamp).toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : t('waktu tidak tersedia', 'time unavailable'))}</div></article>`; }).join('');
+}
+
 async function initAir() {
   const status = qs('#air-status');
   const homeStatus = qs('#home-status');
@@ -113,7 +176,8 @@ async function initAir() {
   try {
     if (status) status.textContent = 'MEMUAT 514 KABUPATEN/KOTA…';
     if (grid) grid.innerHTML = '<p class="air-loading" aria-live="polite">Memuat indeks AQI saat ini untuk seluruh kabupaten/kota Indonesia…<br />Mohon tunggu sebentar.</p>';
-    cities = await loadAllRegencies();
+    const homeOnly = !!qs('#home-aqi-grid') && !grid;
+    if (!homeOnly) cities = await loadAllRegencies();
     const data = await fetchAirQuality();
     const sensorCityNames = new Set(['Jakarta', 'Batam', 'Palembang', 'Medan', 'Dumai', 'Bandar Lampung', 'Padang', 'Palangka Raya', 'Palangkaraya', 'Pontianak', 'Pekanbaru', 'Jambi', 'Bengkulu', 'Banjarmasin', 'Samarinda', 'Balikpapan', 'Banjarbaru', 'Bandung', 'Semarang', 'Surabaya', 'Yogyakarta', 'Denpasar', 'Kupang', 'Palu', 'Manado', 'Makassar']);
     let iqairPayload = { configured: false, data: [] };
@@ -122,6 +186,7 @@ async function initAir() {
     data.forEach((city) => { city.iqair = iqairByName.get(city.name) || null; });
     window.airData = data;
     renderCities(data);
+    renderHomeWorst(data, iqairPayload);
     const worst = [...data].sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1))[0];
     if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI model · IQAir ${iqairPayload.configured ? `${iqairPayload.data?.length || 0} stasiun` : 'belum terhubung'}`;
     const intro = document.querySelector('.air-page')?.previousElementSibling?.querySelector('p:not(.eyebrow)'); if (intro) intro.textContent = 'Dua sumber ditampilkan terpisah: US AQI berbasis model CAMS/Open-Meteo dan US AQI dari stasiun IQAir AirVisual bila tersedia.';
@@ -140,8 +205,8 @@ function makeMap() {
   if (!qs('#map') || !window.L) return;
   const mapIntro = document.querySelector('.page-intro>p:not(.eyebrow)');
   const mapTitle = document.querySelector('.page-intro h1');
-  if (mapTitle) mapTitle.textContent = 'Pantau Udara Kita';
-  if (mapIntro) mapIntro.textContent = 'Data NASA FIRMS dan US AQI membantu kita melihat hotspot, kualitas udara, dan paparan karbon monoksida (CO) di sekitar Indonesia. Data ini adalah sinyal pemantauan, bukan pengganti pemeriksaan lapangan.';
+  if (mapTitle) mapTitle.textContent = t('Pantau Udara Kita', 'Monitor Our Air');
+  if (mapIntro) mapIntro.textContent = t('Data NASA FIRMS dan US AQI membantu kita melihat hotspot, kualitas udara, dan paparan karbon monoksida (CO) di sekitar Indonesia. Data ini adalah sinyal pemantauan, bukan pengganti pemeriksaan lapangan.', 'NASA FIRMS and US AQI data help us understand hotspots, air quality, and carbon monoxide (CO) exposure across Indonesia. These signals support monitoring; they do not replace field verification.');
   const mapSource = document.querySelector('.map-section')?.nextElementSibling;
   if (mapSource?.classList.contains('source-strip')) mapSource.innerHTML = '<div><span class="eyebrow">MEMAHAMI DATA</span><strong>Hotspot, CO, dan AQI</strong><div class="data-guide-grid"><div><b>Hotspot</b><p>Anomali panas yang terdeteksi satelit NASA FIRMS. Hotspot bukan otomatis berarti kebakaran; awan dan kondisi lahan bisa memengaruhi deteksi.</p></div><div><b>CO</b><p>Karbon monoksida adalah gas hasil pembakaran. Di peta NASA AIRS, CO membantu melihat sebaran asap dan atmosfer—ini bukan CO₂ dan bukan AQI.</p></div><div><b>US AQI</b><p>Indeks untuk menerjemahkan tingkat polusi udara menjadi skala risiko kesehatan. Angka lebih tinggi berarti udara lebih perlu diwaspadai.</p></div></div></div><a class="button button-outline" href="https://firms.modaps.eosdis.nasa.gov/web-services/" target="_blank" rel="noreferrer">Tentang NASA FIRMS ↗</a>';
   const mapNote = qs('.map-note');
@@ -192,12 +257,13 @@ async function makeAqiMap() {
   }
 }
 
-if (qs('#city-grid')) { qs('#city-search').addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
+if (qs('#city-grid') || qs('#home-aqi-grid')) { qs('#city-search')?.addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
 if (qs('#news-grid')) { initNewsFilters(); updateNewsSourceCopy(); qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
 initActionForm();
 initVerifiedActions();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
 document.title = document.title.replace(/Rimba Waspada/g, SITE_BRAND); const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); const textNodes = []; while (textWalker.nextNode()) textNodes.push(textWalker.currentNode); textNodes.forEach((node) => { if (node.nodeValue.includes('Rimba Waspada')) node.nodeValue = node.nodeValue.replace(/Rimba Waspada/g, SITE_BRAND); });
+initLanguageSwitcher();
 makeMap();
 makeAqiMap();
 initNewsTicker();
