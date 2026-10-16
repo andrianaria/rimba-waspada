@@ -11,6 +11,15 @@ const cities = [
 
 const qs = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+const trustedSources = [
+  { match: 'antaranews.com', label: 'ANTARA' }, { match: 'kompas.com', label: 'Kompas' }, { match: 'tempo.co', label: 'Tempo' },
+  { match: 'cnnindonesia.com', label: 'CNN Indonesia' }, { match: 'mongabay.co.id', label: 'Mongabay' }, { match: 'thejakartapost.com', label: 'The Jakarta Post' },
+];
+function sourceLabel(domain = '') { return trustedSources.find((source) => domain.toLowerCase().includes(source.match))?.label || null; }
+async function fetchNews() { const query = encodeURIComponent('karhutla Indonesia'); const response = await fetch(`https://api.gdeltproject.org/api/v2/doc/doc?query=${query}&mode=artlist&maxrecords=100&format=json&sort=datedesc&timespan=7d`); if (!response.ok) throw new Error(`GDELT HTTP ${response.status}`); const payload = await response.json(); return (payload.articles || []).map((article) => ({ ...article, source: sourceLabel(article.domain) })).filter((article) => article.source && article.url && article.title); }
+function formatNewsDate(value) { if (!value) return 'waktu tidak tersedia'; const match = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/); if (!match) return value; return new Date(`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}Z`).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }); }
+function renderNews(articles) { const grid = qs('#news-grid'); if (!grid) return; const query = (qs('#news-search')?.value || '').toLowerCase(); const source = document.querySelector('.filter-button.active')?.dataset.source || 'all'; const filtered = articles.filter((article) => (source === 'all' || article.source === source) && `${article.title} ${article.domain}`.toLowerCase().includes(query)); grid.innerHTML = filtered.length ? filtered.slice(0, 60).map((article) => `<a class="news-card" href="${escapeHtml(article.url)}" target="_blank" rel="noreferrer"><div class="news-card-top"><span class="news-source">${escapeHtml(article.source)}</span><span class="news-date">${escapeHtml(formatNewsDate(article.seendate))}</span></div><h3>${escapeHtml(article.title)}</h3><div class="news-card-bottom"><span>${escapeHtml(article.domain)}</span><strong>Baca artikel ↗</strong></div></a>`).join('') : '<p class="data-disclaimer">Belum ada artikel dari domain kurasi pada hasil live saat ini. Coba kata kunci lain atau buka situs sumber langsung.'; }
+async function initNews() { const status = qs('#news-status'); try { const articles = await fetchNews(); window.newsData = articles; renderNews(articles); if (status) status.textContent = `LIVE · ${articles.length} artikel dari domain kurasi`; } catch (error) { if (status) status.textContent = `Indeks media belum tersedia · ${error.message}`; const grid = qs('#news-grid'); if (grid) grid.innerHTML = '<p class="data-disclaimer">Indeks berita sedang membatasi permintaan atau tidak tersedia. Tautan sumber tetap bisa ditambahkan lewat integrasi RSS/backend berikutnya.</p>'; } }
 
 function aqiStatus(aqi) {
   if (aqi == null) return { label: 'N/A', tone: 'moderate' };
@@ -75,4 +84,6 @@ function makeMap() {
 }
 
 if (qs('#city-grid')) { qs('#city-search').addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
+if (qs('#news-grid')) { qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
+const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
 if (qs('#map')) { const config = document.createElement('script'); config.src = 'config.js'; config.onload = makeMap; config.onerror = makeMap; document.head.appendChild(config); } else makeMap();
