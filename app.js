@@ -144,7 +144,7 @@ async function fetchNews() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
   try {
-    const response = await fetch('/api/news', { cache: 'no-store', signal: controller.signal });
+    const response = await fetch('/api/news', { signal: controller.signal });
     if (!response.ok) throw new Error(`Indeks berita HTTP ${response.status}`);
     const payload = await response.json();
     return (payload.articles || []).map((article) => ({ ...article, source: sourceLabel(article.domain) })).filter((article) => article.source && article.url && article.title);
