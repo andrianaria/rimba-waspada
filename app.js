@@ -116,16 +116,8 @@ function makeMap() {
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.82 }).addTo(map);
   const firesStatus = qs('#fires-status');
-  const mapKey = window.FIRMS_MAP_KEY || '';
-  if (!mapKey) {
-    if (firesStatus) firesStatus.textContent = 'MENUNGGU FEED LIVE · Peta siap menerima hotspot NASA FIRMS';
-    return;
-  }
-  const bounds = '95,-11,141,6';
-  const endpoint = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${encodeURIComponent(mapKey)}/VIIRS_SNPP_NRT/${bounds}/1`;
-  fetch(endpoint).then((response) => { if (!response.ok) throw new Error(`FIRMS HTTP ${response.status}`); return response.text(); }).then((csv) => {
-    const lines = csv.trim().split('\n'); const headers = lines.shift().split(','); const rows = lines.map((line) => line.split(',')); const index = Object.fromEntries(headers.map((header, i) => [header, i]));
-    rows.slice(0, 3000).forEach((row) => { const lat = Number(row[index.latitude]); const lon = Number(row[index.longitude]); if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const confidence = row[index.confidence] || 'n/a'; const marker = L.circleMarker([lat, lon], { radius: 5, color: '#fff', weight: 1, fillColor: '#e95748', fillOpacity: .83 }).addTo(map); marker.bindPopup(`<strong>Hotspot NASA FIRMS</strong><br />Kepercayaan: ${escapeHtml(confidence)}<br />${escapeHtml(row[index.acq_date] || '')} ${escapeHtml(row[index.acq_time] || '')} UTC`); });
+  fetch('/api/firms?days=1').then((response) => { if (!response.ok) throw new Error(`FIRMS HTTP ${response.status}`); return response.json(); }).then((rows) => {
+    rows.slice(0, 3000).forEach((row) => { const lat = Number(row.latitude); const lon = Number(row.longitude); if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const confidence = row.confidence || 'n/a'; const marker = L.circleMarker([lat, lon], { radius: 5, color: '#fff', weight: 1, fillColor: '#e95748', fillOpacity: .83 }).addTo(map); marker.bindPopup(`<strong>Hotspot NASA FIRMS</strong><br />Kepercayaan: ${escapeHtml(confidence)}<br />${escapeHtml(row.acq_date || '')} ${escapeHtml(row.acq_time || '')} UTC`); });
     if (firesStatus) firesStatus.textContent = `LIVE · ${rows.length.toLocaleString('id-ID')} hotspot dari NASA FIRMS`;
   }).catch((error) => { if (firesStatus) firesStatus.textContent = `Feed FIRMS gagal · ${error.message}`; });
 }
@@ -135,4 +127,4 @@ if (qs('#news-grid')) { qs('#news-search').addEventListener('input', () => rende
 initActionForm();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
 document.title = document.title.replace(/Rimba Waspada/g, 'Rimba Kita'); const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); const textNodes = []; while (textWalker.nextNode()) textNodes.push(textWalker.currentNode); textNodes.forEach((node) => { if (node.nodeValue.includes('Rimba Waspada')) node.nodeValue = node.nodeValue.replace(/Rimba Waspada/g, 'Rimba Kita'); if (node.nodeValue.includes('MAP_KEY')) node.nodeValue = node.nodeValue.replace(/Hotspot aktif dari NASA FIRMS akan tampil di sini setelah FIRMS_MAP_KEY dikonfigurasi\./g, 'Hotspot aktif dari NASA FIRMS akan tampil di sini saat feed live terhubung.').replace(/MENUNGGU MAP_KEY/g, 'MENUNGGU FEED LIVE').replace(/FIRMS_MAP_KEY/g, 'feed live'); });
-if (qs('#map')) { const config = document.createElement('script'); config.src = 'config.js'; config.onload = makeMap; config.onerror = makeMap; document.head.appendChild(config); } else makeMap();
+makeMap();
