@@ -102,7 +102,7 @@ function renderCities(data) {
   if (!grid) return;
   const query = (qs('#city-search')?.value || '').toLowerCase();
   const filtered = data.filter((city) => `${city.name} ${city.province}`.toLowerCase().includes(query)).sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1));
-  grid.innerHTML = filtered.length ? filtered.map((city) => { const status = aqiStatus(city.aqi); return `<article class="air-card"><div class="air-card-top"><div><div class="city-name">${escapeHtml(city.name)}</div><div class="province">${escapeHtml(city.province)}</div></div><span class="air-badge ${status.tone}">${status.label}</span></div><div class="aqi-row"><strong class="aqi-number">${city.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />model</span></div><div class="pm">PM2.5 · ${city.pm25 == null ? '—' : `${Number(city.pm25).toFixed(1)} µg/m³`} · live</div><div class="card-time">${city.time ? `${city.time.replace('T', ' ')} · ${city.timezone}` : 'waktu tidak tersedia'}</div></article>`; }).join('') : '<p class="data-disclaimer">Kota tidak ditemukan.</p>';
+  grid.innerHTML = filtered.length ? filtered.map((city) => { const status = aqiStatus(city.aqi); const sensorStatus = aqiStatus(city.iqair?.aqi); return `<article class="air-card"><div class="air-card-top"><div><div class="city-name">${escapeHtml(city.name)}</div><div class="province">${escapeHtml(city.province)}</div></div><span class="air-badge ${status.tone}">${status.label}</span></div><div class="aqi-dual"><div class="aqi-source-card"><strong class="aqi-number">${city.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />model CAMS</span></div><div class="aqi-source-card sensor"><strong class="aqi-number">${city.iqair?.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />IQAir sensor</span></div></div><div class="aqi-source-labels"><span>Open-Meteo</span><span>${city.iqair ? `${escapeHtml(city.iqair.station || 'Stasiun IQAir')} · ${escapeHtml(sensorStatus.label)}` : 'Stasiun IQAir tidak tersedia'}</span></div><div class="pm">PM2.5 model · ${city.pm25 == null ? '—' : `${Number(city.pm25).toFixed(1)} µg/m³`} · live</div><div class="card-time">${city.time ? `${city.time.replace('T', ' ')} · ${city.timezone}` : 'waktu tidak tersedia'}</div></article>`; }).join('') : '<p class="data-disclaimer">Kota tidak ditemukan.</p>';
 }
 
 async function initAir() {
@@ -114,10 +114,18 @@ async function initAir() {
     if (grid) grid.innerHTML = '<p class="air-loading" aria-live="polite">Memuat indeks AQI saat ini untuk seluruh kabupaten/kota Indonesia…<br />Mohon tunggu sebentar.</p>';
     cities = await loadAllRegencies();
     const data = await fetchAirQuality();
+    const sensorCityNames = new Set(['Jakarta', 'Batam', 'Palembang', 'Medan', 'Dumai', 'Bandar Lampung', 'Padang', 'Palangka Raya', 'Pontianak', 'Pekanbaru', 'Jambi', 'Bengkulu', 'Banjarmasin', 'Samarinda', 'Balikpapan', 'Banjarbaru', 'Bandung', 'Semarang', 'Surabaya', 'Yogyakarta', 'Denpasar', 'Kupang', 'Palu', 'Manado', 'Makassar']);
+    let iqairPayload = { configured: false, data: [] };
+    try { const iqairResponse = await fetch('/api/iqair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locations: data.filter((city) => sensorCityNames.has(city.name)) }) }); if (iqairResponse.ok) iqairPayload = await iqairResponse.json(); } catch { /* model data remains usable when IQAir is unavailable */ }
+    const iqairByName = new Map((iqairPayload.data || []).map((item) => [item.requestedName, item]));
+    data.forEach((city) => { city.iqair = iqairByName.get(city.name) || null; });
     window.airData = data;
     renderCities(data);
     const worst = [...data].sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1))[0];
-    if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI`;
+    if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI model · IQAir ${iqairPayload.configured ? `${iqairPayload.data?.length || 0} stasiun` : 'belum terhubung'}`;
+    const intro = document.querySelector('.air-page')?.previousElementSibling?.querySelector('p:not(.eyebrow)'); if (intro) intro.textContent = 'Dua sumber ditampilkan terpisah: US AQI berbasis model CAMS/Open-Meteo dan US AQI dari stasiun IQAir AirVisual bila tersedia.';
+    const disclaimer = document.querySelector('.air-page .data-disclaimer'); if (disclaimer) disclaimer.textContent = 'Model: Open-Meteo Air Quality API (CAMS). Sensor: IQAir AirVisual API. Angka kosong berarti stasiun IQAir tidak tersedia atau belum mengirim data untuk kota tersebut.';
+    const methodology = document.querySelector('.air-page')?.nextElementSibling; if (methodology) { const title = methodology.querySelector('strong'); const copy = methodology.querySelector('p'); if (title) title.textContent = 'Model + sensor'; if (copy) copy.textContent = 'Bandingkan angka model CAMS dan pembacaan stasiun IQAir tanpa mencampur sumber, waktu, atau metodologinya.'; }
     if (homeStatus) homeStatus.textContent = 'Kualitas udara live terhubung';
   } catch (error) {
     if (status) status.textContent = 'Gagal mengambil feed live · coba refresh';
