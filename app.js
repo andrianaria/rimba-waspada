@@ -131,10 +131,14 @@ function makeMap() {
   const mapIntro = document.querySelector('.page-intro>p:not(.eyebrow)');
   if (mapIntro) mapIntro.textContent = 'NASA FIRMS mendeteksi titik panas dari citra satelit secara near-real-time. Satu titik adalah sinyal awal, bukan bukti kebakaran yang sudah terkonfirmasi.';
   const mapNote = qs('.map-note');
-  if (mapNote) mapNote.innerHTML = '<strong>Apa itu hotspot NASA?</strong><p>Hotspot adalah anomali panas yang tertangkap sensor satelit NASA FIRMS, biasanya dari VIIRS atau MODIS.</p><p>Gunakan titik, waktu, dan tingkat kepercayaan sebagai petunjuk awal. Konfirmasi tetap perlu dilakukan dengan kondisi lapangan dan sumber resmi.</p>';
+  if (mapNote) mapNote.innerHTML = '<strong>Hotspot & atmosfer NASA</strong><p>Titik merah adalah anomali panas dari NASA FIRMS. Layer warna adalah konsentrasi karbon monoksida NASA AIRS: merah lebih tinggi, biru/ungu lebih rendah.</p><p>Layer atmosfer bukan AQI dan tidak otomatis menunjukkan lokasi kebakaran.</p>';
   const map = L.map('map', { scrollWheelZoom: false, zoomControl: false }).setView([-1.8, 117.2], 4.7);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.82 }).addTo(map);
+  const nasaDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const coLayer = L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi', { layers: 'AIRS_L2_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Day', format: 'image/png', transparent: true, opacity: .52, version: '1.1.1', time: nasaDate, attribution: 'NASA GIBS / AIRS' }).addTo(map);
+  const mapOverlay = document.querySelector('#map')?.parentElement?.querySelector('.map-overlay');
+  if (mapOverlay) { mapOverlay.insertAdjacentHTML('beforeend', '<button class="overlay-chip map-toggle" id="co-toggle" type="button">Sembunyikan CO</button>'); qs('#co-toggle')?.addEventListener('click', (event) => { if (map.hasLayer(coLayer)) { map.removeLayer(coLayer); event.currentTarget.textContent = 'Tampilkan CO'; } else { coLayer.addTo(map); event.currentTarget.textContent = 'Sembunyikan CO'; } }); }
   const firesStatus = qs('#fires-status');
   fetch('/api/firms?days=1').then((response) => { if (!response.ok) throw new Error(`FIRMS HTTP ${response.status}`); return response.json(); }).then((rows) => {
     rows.slice(0, 3000).forEach((row) => { const lat = Number(row.latitude); const lon = Number(row.longitude); if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; const confidence = row.confidence || 'n/a'; const marker = L.circleMarker([lat, lon], { radius: 5, color: '#fff', weight: 1, fillColor: '#e95748', fillOpacity: .83 }).addTo(map); marker.bindPopup(`<strong>Hotspot NASA FIRMS</strong><br />Kepercayaan: ${escapeHtml(confidence)}<br />${escapeHtml(row.acq_date || '')} ${escapeHtml(row.acq_time || '')} UTC`); });
