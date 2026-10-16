@@ -29,7 +29,11 @@ const locations = [
 ];
 
 function send(response, status, payload, cacheable = false) {
-  if (cacheable) response.setHeader('Cache-Control', `public, s-maxage=${CACHE_SECONDS}, stale-while-revalidate=3600`);
+  if (cacheable) {
+    const cacheHeader = `public, max-age=0, s-maxage=${CACHE_SECONDS}, stale-while-revalidate=3600`;
+    response.setHeader('Cache-Control', cacheHeader);
+    response.setHeader('Vercel-CDN-Cache-Control', cacheHeader);
+  }
   return response.status(status).json(payload);
 }
 
