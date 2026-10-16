@@ -8,7 +8,7 @@ function parseGoogleNews(xml) {
     const field = (tag) => decodeXml(block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`))?.[1]);
     const sourceMatch = block.match(/<source[^>]*url="([^"]*)"[^>]*>([\s\S]*?)<\/source>/);
     const sourceUrl = decodeXml(sourceMatch?.[1]);
-    return { title: field('title'), url: field('link'), domain: sourceUrl ? new URL(sourceUrl).hostname : '', seendate: field('pubDate') };
+    return { title: field('title'), url: field('link'), domain: sourceUrl ? new URL(sourceUrl).hostname : '', seendate: field('pubDate'), description: field('description') };
   }).filter((article) => article.title && article.url && article.domain);
 }
 
