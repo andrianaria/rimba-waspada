@@ -46,7 +46,8 @@ export async function onRequestGet() {
       if (upstream.ok) articles = parseGdelt(await upstream.json());
     }
 
-    articles = articles.filter(isCurated);
+    const curatedArticles = articles.filter(isCurated);
+    if (curatedArticles.length) articles = curatedArticles;
     if (!articles.length) return new Response(JSON.stringify({ error: 'Indeks berita sedang tidak tersedia.', articles: [] }), { status: 502, headers: { 'content-type': 'application/json' } });
     return new Response(JSON.stringify({ articles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=900, stale-while-revalidate=1800' } });
   } catch (error) {
