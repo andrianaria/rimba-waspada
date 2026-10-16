@@ -114,7 +114,7 @@ async function initAir() {
     if (grid) grid.innerHTML = '<p class="air-loading" aria-live="polite">Memuat indeks AQI saat ini untuk seluruh kabupaten/kota Indonesia…<br />Mohon tunggu sebentar.</p>';
     cities = await loadAllRegencies();
     const data = await fetchAirQuality();
-    const sensorCityNames = new Set(['Jakarta', 'Batam', 'Palembang', 'Medan', 'Dumai', 'Bandar Lampung', 'Padang', 'Palangka Raya', 'Pontianak', 'Pekanbaru', 'Jambi', 'Bengkulu', 'Banjarmasin', 'Samarinda', 'Balikpapan', 'Banjarbaru', 'Bandung', 'Semarang', 'Surabaya', 'Yogyakarta', 'Denpasar', 'Kupang', 'Palu', 'Manado', 'Makassar']);
+    const sensorCityNames = new Set(['Jakarta', 'Batam', 'Palembang', 'Medan', 'Dumai', 'Bandar Lampung', 'Padang', 'Palangka Raya', 'Palangkaraya', 'Pontianak', 'Pekanbaru', 'Jambi', 'Bengkulu', 'Banjarmasin', 'Samarinda', 'Balikpapan', 'Banjarbaru', 'Bandung', 'Semarang', 'Surabaya', 'Yogyakarta', 'Denpasar', 'Kupang', 'Palu', 'Manado', 'Makassar']);
     let iqairPayload = { configured: false, data: [] };
     try { const iqairResponse = await fetch('/api/iqair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locations: data.filter((city) => sensorCityNames.has(city.name)) }) }); if (iqairResponse.ok) iqairPayload = await iqairResponse.json(); } catch { /* model data remains usable when IQAir is unavailable */ }
     const iqairByName = new Map((iqairPayload.data || []).map((item) => [item.requestedName, item]));
@@ -126,6 +126,7 @@ async function initAir() {
     const intro = document.querySelector('.air-page')?.previousElementSibling?.querySelector('p:not(.eyebrow)'); if (intro) intro.textContent = 'Dua sumber ditampilkan terpisah: US AQI berbasis model CAMS/Open-Meteo dan US AQI dari stasiun IQAir AirVisual bila tersedia.';
     const disclaimer = document.querySelector('.air-page .data-disclaimer'); if (disclaimer) disclaimer.textContent = 'Model: Open-Meteo Air Quality API (CAMS). Sensor: IQAir AirVisual API. Angka kosong berarti stasiun IQAir tidak tersedia atau belum mengirim data untuk kota tersebut.';
     const methodology = document.querySelector('.air-page')?.nextElementSibling; if (methodology) { const title = methodology.querySelector('strong'); const copy = methodology.querySelector('p'); if (title) title.textContent = 'Model + sensor'; if (copy) copy.textContent = 'Bandingkan angka model CAMS dan pembacaan stasiun IQAir tanpa mencampur sumber, waktu, atau metodologinya.'; }
+    const footerSource = document.querySelector('.site-footer span:nth-child(2)'); if (footerSource) footerSource.textContent = 'Data udara: CAMS + IQAir bila tersedia';
     if (homeStatus) homeStatus.textContent = 'Kualitas udara live terhubung';
   } catch (error) {
     if (status) status.textContent = 'Gagal mengambil feed live · coba refresh';
