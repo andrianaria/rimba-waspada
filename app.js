@@ -142,6 +142,35 @@ function makeMap() {
   }).catch((error) => { if (firesStatus) firesStatus.textContent = `Feed FIRMS gagal · ${error.message}`; });
 }
 
+function aqiMapColor(aqi) { if (aqi == null) return '#64716d'; if (aqi <= 50) return '#4caa72'; if (aqi <= 100) return '#d2a531'; if (aqi <= 150) return '#e27b3d'; if (aqi <= 200) return '#d95751'; return '#81517c'; }
+async function makeAqiMap() {
+  if (!qs('#map') || !window.L || qs('#aqi-map')) return;
+  const sourceStrip = qs('.source-strip');
+  if (!sourceStrip) return;
+  sourceStrip.insertAdjacentHTML('beforebegin', '<section class="aqi-map-section shell"><div class="section-heading compact"><div><p class="eyebrow">KUALITAS UDARA NASIONAL</p><h2>Indeks AQI<br /><em>di peta.</em></h2></div><div><p class="section-sidecopy">US AQI saat ini untuk seluruh kabupaten/kota Indonesia. Warna dan angka membantu melihat wilayah dengan kualitas udara yang perlu diperhatikan.</p><div class="data-status" id="aqi-map-status">Menyiapkan peta AQI…</div></div></div><div class="map-wrap aqi-map-wrap"><div id="aqi-map" aria-label="Peta indeks kualitas udara Indonesia"></div><div class="map-overlay"><span class="overlay-chip"><span class="pulse"></span> AQI LIVE</span><span class="overlay-chip muted">MODEL OPEN-METEO</span></div><div class="map-note"><strong>Catatan AQI</strong><p>Nilai US AQI dihitung dari data kualitas udara model Open-Meteo, bukan pembacaan langsung dari stasiun IQAir.</p></div></div><div class="map-footer aqi-map-footer"><div><i class="legend-dot low"></i>Baik ≤ 50</div><div><i class="legend-dot medium"></i>Sedang 51–100</div><div><i class="legend-dot high"></i>Tidak sehat &gt; 100</div><div>Data diperbarui saat halaman dimuat</div></div></section>');
+  const map = L.map('aqi-map', { scrollWheelZoom: false, zoomControl: false }).setView([-1.8, 117.2], 4.7);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', opacity: 0.82 }).addTo(map);
+  const status = qs('#aqi-map-status');
+  try {
+    if (status) status.textContent = 'MEMUAT AQI 514 KABUPATEN/KOTA…';
+    const regencies = await loadAllRegencies();
+    cities = regencies;
+    const data = await fetchAirQuality();
+    data.forEach((city) => {
+      if (!Number.isFinite(city.aqi)) return;
+      const marker = L.circleMarker([city.lat, city.lon], { radius: 5, color: '#fff', weight: 1, fillColor: aqiMapColor(city.aqi), fillOpacity: .9 }).addTo(map);
+      marker.bindPopup(`<strong>${escapeHtml(city.name)}</strong><br />${escapeHtml(city.province)}<br /><b>${city.aqi} US AQI</b> · ${escapeHtml(aqiStatus(city.aqi).label)}<br />PM2.5: ${city.pm25 == null ? '—' : Number(city.pm25).toFixed(1)} µg/m³<br />${escapeHtml(city.time || '')}`);
+    });
+    const updated = data.filter((city) => city.time).sort((a, b) => String(b.time).localeCompare(String(a.time)))[0]?.time;
+    if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · ${updated ? updated.replace('T', ' ') : 'waktu tersedia'}`;
+  } catch (error) {
+    if (status) status.textContent = 'Feed AQI gagal dimuat · coba refresh';
+    const note = document.querySelector('.aqi-map-wrap .map-note');
+    if (note) note.insertAdjacentHTML('beforeend', `<p class="map-error">${escapeHtml(error.message)}</p>`);
+  }
+}
+
 if (qs('#city-grid')) { qs('#city-search').addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
 if (qs('#news-grid')) { initNewsFilters(); updateNewsSourceCopy(); qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
 initActionForm();
@@ -149,6 +178,7 @@ initVerifiedActions();
 const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>');
 document.title = document.title.replace(/Rimba Waspada/g, SITE_BRAND); const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); const textNodes = []; while (textWalker.nextNode()) textNodes.push(textWalker.currentNode); textNodes.forEach((node) => { if (node.nodeValue.includes('Rimba Waspada')) node.nodeValue = node.nodeValue.replace(/Rimba Waspada/g, SITE_BRAND); });
 makeMap();
+makeAqiMap();
 initNewsTicker();
 initMediaGallery();
 setInterval(() => { initNewsTicker(); initMediaGallery(); if (qs('#news-grid')) initNews(); }, 15 * 60 * 1000);
