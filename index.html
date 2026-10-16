@@ -1,87 +1,16 @@
 <!doctype html>
 <html lang="id">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#071c1a" />
-    <meta name="description" content="Pusat pantauan karhutla, kualitas udara, dan aksi warga untuk Indonesia." />
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Rimba Waspada — pusat informasi karhutla dan kualitas udara Indonesia." />
     <title>Rimba Waspada — Pantau Karhutla Indonesia</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" /><link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
-    <div class="noise"></div>
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="Rimba Waspada beranda">
-        <span class="brand-mark">✦</span>
-        <span><strong>Rimba</strong> Waspada</span>
-      </a>
-      <nav aria-label="Navigasi utama">
-        <a href="#pantauan">Pantauan</a>
-        <a href="#udara">Kualitas udara</a>
-        <a href="#aksi">Aksi warga</a>
-      </nav>
-      <a class="header-button" href="#lapor">Laporkan titik</a>
-    </header>
-
-    <main id="top">
-      <section class="hero shell">
-        <div class="hero-copy">
-          <p class="eyebrow"><span class="live-dot"></span> PUSAT INFORMASI PUBLIK · INDONESIA</p>
-          <h1>Melihat lebih awal.<br /><em>Bertindak lebih cepat.</em></h1>
-          <p class="hero-lede">Satu tempat untuk memahami titik panas, kualitas udara, dan langkah aman saat karhutla mengancam.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#pantauan">Lihat peta pantauan <span>↗</span></a>
-            <a class="text-link" href="#metodologi">Bagaimana data bekerja <span>→</span></a>
-          </div>
-          <div class="source-note">Mode demo aktif · data contoh untuk pengembangan UX</div>
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="sun"></div><div class="mountain mountain-back"></div><div class="mountain mountain-front"></div>
-          <div class="smoke smoke-one"></div><div class="smoke smoke-two"></div><div class="smoke smoke-three"></div>
-          <div class="hero-stat"><span class="stat-label">AREA PERLU PERHATIAN</span><strong>3 provinsi</strong><span>berdasarkan simulasi hotspot</span></div>
-        </div>
-      </section>
-
-      <section class="stats shell" aria-label="Ringkasan kondisi">
-        <article class="stat-card"><span class="card-kicker">HOTSPOT TERDETEKSI</span><strong class="accent-orange" id="hotspot-count">1.248</strong><span>titik dalam 24 jam</span></article>
-        <article class="stat-card"><span class="card-kicker">KUALITAS UDARA TERBURUK</span><strong class="accent-red" id="worst-aqi">176</strong><span id="worst-city">Palangka Raya · tidak sehat</span></article>
-        <article class="stat-card"><span class="card-kicker">ANGIN DOMINAN</span><strong class="accent-teal">Tenggara</strong><span>8–14 km/jam · simulasi</span></article>
-        <article class="stat-card"><span class="card-kicker">PEMBARUAN TERAKHIR</span><strong class="accent-blue">09:20</strong><span>16 Oktober 2026 · WIB</span></article>
-      </section>
-
-      <section class="map-section shell" id="pantauan">
-        <div class="section-heading">
-          <div><p class="eyebrow">01 / PANTAUAN NASIONAL</p><h2>Di mana risikonya<br /><em>hari ini?</em></h2></div>
-          <div class="section-sidecopy"><p>Gunakan peta sebagai sinyal awal, bukan konfirmasi kebakaran. Setiap titik perlu diverifikasi oleh petugas lapangan.</p><div class="map-legend"><span><i class="legend-dot high"></i>Tinggi</span><span><i class="legend-dot medium"></i>Waspada</span><span><i class="legend-dot low"></i>Rendah</span></div></div>
-        </div>
-        <div class="map-wrap">
-          <div id="map" aria-label="Peta titik panas Indonesia"></div>
-          <div class="map-overlay"><span class="overlay-chip"><span class="pulse"></span> SIMULASI LIVE VIEW</span><span class="overlay-chip muted">VIIRS · MODIS</span></div>
-          <div class="map-note"><strong>Catatan penting</strong><p>Hotspot adalah anomali panas dari satelit, bukan otomatis titik api aktif. Awan dan tutupan lahan dapat memengaruhi deteksi.</p></div>
-        </div>
-      </section>
-
-      <section class="air-section shell" id="udara">
-        <div class="section-heading compact"><div><p class="eyebrow">02 / KUALITAS UDARA</p><h2>Udara yang kita hirup,<br /><em>kita jaga bersama.</em></h2></div><div class="filter-row"><label for="city-search">Cari kota</label><input id="city-search" type="search" placeholder="Jakarta, Pontianak…" /></div></div>
-        <div class="air-grid" id="city-grid"></div>
-        <div class="data-disclaimer">Indeks di bawah adalah data contoh untuk demo. Integrasi produksi sebaiknya menampilkan PM2.5, waktu pengukuran, provider, dan metodologi indeks secara eksplisit.</div>
-      </section>
-
-      <section class="action-section shell" id="aksi">
-        <div class="action-panel"><div><p class="eyebrow">03 / YANG BISA KITA LAKUKAN</p><h2>Informasi adalah<br /><em>pertolongan pertama.</em></h2><p class="action-intro">Bagikan informasi yang terverifikasi, lindungi kelompok rentan, dan bantu laporan sampai ke kanal resmi.</p></div><div class="action-list"><div class="action-item"><span>01</span><div><strong>Kurangi paparan asap</strong><p>Tutup jendela, gunakan masker yang sesuai, dan batasi aktivitas luar ruang saat udara memburuk.</p></div></div><div class="action-item"><span>02</span><div><strong>Laporkan dengan konteks</strong><p>Sertakan lokasi, waktu, foto dari tempat aman, dan jangan mendekati api untuk mengambil gambar.</p></div></div><div class="action-item"><span>03</span><div><strong>Dukung respons lokal</strong><p>Salurkan bantuan melalui lembaga resmi dan ikut menyebarkan peringatan yang sudah terverifikasi.</p></div></div></div></div>
-      </section>
-
-      <section class="report-section shell" id="lapor"><div class="report-card"><div><p class="eyebrow">KIRIM SUPPORT</p><h2>Punya temuan atau<br /><em>butuh bantuan?</em></h2><p>Versi berikutnya akan menghubungkan laporan warga ke kanal resmi BPBD, Manggala Agni, dan pemerintah daerah.</p></div><div class="report-actions"><a class="button button-primary" href="mailto:halo@rimbawaspada.id?subject=Laporan%20Karhutla">Kirim laporan via email <span>↗</span></a><a class="button button-outline" href="https://www.bmkg.go.id/cuaca/karhutla" target="_blank" rel="noreferrer">Cek BMKG Karhutla</a></div></div></section>
-
-      <section class="method-section shell" id="metodologi"><div class="method-copy"><p class="eyebrow">DATA & METODOLOGI</p><h2>Dibangun untuk<br /><em>dipercaya.</em></h2><p>Arsitektur data memisahkan sinyal satelit, kualitas udara, cuaca, dan laporan warga agar sumber, waktu pembaruan, serta tingkat keyakinan tiap informasi bisa dilihat.</p></div><div class="source-cards"><a href="https://firms.modaps.eosdis.nasa.gov/web-services/" target="_blank" rel="noreferrer"><span>NASA FIRMS</span><strong>Hotspot VIIRS & MODIS ↗</strong><small>Near-real-time active fire data</small></a><a href="https://www.bmkg.go.id/cuaca/karhutla" target="_blank" rel="noreferrer"><span>BMKG</span><strong>Karhutla & cuaca ↗</strong><small>Hotspot, asap, angin, FWI</small></a><a href="https://www.iqair.com/air-quality-monitors/" target="_blank" rel="noreferrer"><span>IQAIR / AQ PROVIDER</span><strong>Kualitas udara kota ↗</strong><small>PM2.5, AQI, timestamp</small></a></div></section>
-    </main>
-
-    <footer class="site-footer shell"><span>✦ Rimba Waspada</span><span>Proyek publik untuk Indonesia · v0.1 demo</span><a href="mailto:halo@rimbawaspada.id">halo@rimbawaspada.id</a></footer>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="app.js"></script>
+  <body><div class="noise"></div><header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">✦</span><span><strong>Rimba</strong> Waspada</span></a><nav aria-label="Navigasi utama"><a class="active" href="index.html">Beranda</a><a href="pantauan.html">Pantauan</a><a href="udara.html">Kualitas udara</a><a href="aksi.html">Aksi warga</a></nav><a class="header-button" href="aksi.html#lapor">Laporkan</a></header>
+    <main><section class="hero shell"><div class="hero-copy"><p class="eyebrow"><span class="live-dot"></span> PUSAT INFORMASI PUBLIK · INDONESIA</p><h1>Melihat lebih awal.<br /><em>Bertindak lebih cepat.</em></h1><p class="hero-lede">Satu tempat untuk memahami titik panas, kualitas udara, dan langkah aman saat karhutla mengancam.</p><div class="hero-actions"><a class="button button-primary" href="pantauan.html">Buka peta pantauan <span>↗</span></a><a class="text-link" href="udara.html">Cek udara kota <span>→</span></a></div><div class="source-note"><span id="home-status">Memuat status sumber…</span> · pembaruan bersumber dari feed publik</div></div><div class="hero-art" aria-hidden="true"><div class="sun"></div><div class="mountain mountain-back"></div><div class="mountain mountain-front"></div><div class="smoke smoke-one"></div><div class="smoke smoke-two"></div><div class="smoke smoke-three"></div><div class="hero-stat"><span class="stat-label">FOKUS HARI INI</span><strong>Deteksi & perlindungan</strong><span>Data harus punya sumber dan waktu.</span></div></div></section>
+      <section class="home-grid shell"><a class="feature-card feature-map" href="pantauan.html"><span class="card-index">01</span><div><p class="eyebrow">PANTAUAN NASIONAL</p><h2>Peta titik<br /><em>panas</em></h2><p>Jelajahi sinyal hotspot satelit dan status sumber datanya.</p></div><span class="card-arrow">↗</span></a><a class="feature-card feature-air" href="udara.html"><span class="card-index">02</span><div><p class="eyebrow">KUALITAS UDARA</p><h2>Udara di<br /><em>kotamu</em></h2><p>PM2.5 dan AQI berbasis model kualitas udara global.</p></div><span class="card-arrow">↗</span></a><a class="feature-card feature-action" href="aksi.html"><span class="card-index">03</span><div><p class="eyebrow">AKSI WARGA</p><h2>Bantu dengan<br /><em>aman</em></h2><p>Pelajari langkah perlindungan, verifikasi, dan dukungan.</p></div><span class="card-arrow">↗</span></a></section>
+      <section class="quote-section shell"><p>“Hotspot adalah sinyal awal, bukan vonis. Informasi yang baik selalu menyebutkan sumber, waktu, dan batasannya.”</p><span>PRINSIP RIMBA WASPADA</span></section>
+    </main><footer class="site-footer shell"><span>✦ Rimba Waspada</span><span>Proyek publik untuk Indonesia · v0.2</span><a href="aksi.html#lapor">Kirim dukungan</a></footer><script src="app.js"></script>
   </body>
 </html>
