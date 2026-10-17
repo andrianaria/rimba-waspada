@@ -68,6 +68,26 @@ const trustedSources = [
   { match: 'kompas.com', label: 'Kompas' }, { match: 'detik.com', label: 'detikcom' },
   { match: 'tempo.co', label: 'Tempo' }, { match: 'cnnindonesia.com', label: 'CNN Indonesia' },
 ];
+const curatedDonationLinks = [
+  {
+    source: 'Kitabisa',
+    title: 'Bantu warga terdampak karhutla',
+    description: 'Galang dana untuk membantu warga yang terdampak kebakaran hutan dan lahan.',
+    url: 'https://kitabisa.com/campaign/urgentkarhutla',
+  },
+  {
+    source: 'Bantu Teman Indonesia',
+    title: 'Peduli Karhutla Kalimantan',
+    description: 'Dukungan untuk bantuan medis, logistik relawan, satwa, dan warga terdampak.',
+    url: 'https://bantuteman.org/campaign/btipedulikarhutla',
+  },
+  {
+    source: 'Mandiri Amal Insani',
+    title: 'Saling Bantu Bencana Karhutla',
+    description: 'Bantuan rumah aman asap, perlengkapan kesehatan, dan kebutuhan warga terdampak.',
+    url: 'https://mandiriamalinsani.or.id/saling-bantu-bencana-karhutla/',
+  },
+];
 function sourceLabel(domain = '') { return trustedSources.find((source) => domain.toLowerCase().includes(source.match))?.label || null; }
 function articleSource(article) {
   const candidates = [article?.domain];
@@ -97,6 +117,9 @@ function applyLanguage(lang = currentLanguage) {
   const footerLink = qs('.site-footer a'); if (footerLink) footerLink.textContent = t('Kirim dukungan', 'Send support');
   const actionHeading = qs('.submit-heading h2'); if (actionHeading) actionHeading.innerHTML = currentLanguage === 'en' ? 'Register your action,<br /><em>we review its validity before it goes live.</em>' : 'Daftarkan aksimu,<br /><em>validitas akan dikurasi terlebih dahulu sebelum live.</em>';
   const verifiedHeading = qs('.verified-actions-heading h2'); if (verifiedHeading) verifiedHeading.innerHTML = currentLanguage === 'en' ? 'Action<br /><em>directory.</em>' : 'Daftar<br /><em>aksi.</em>';
+  const donationHeading = qs('#donation-links h2'); if (donationHeading) donationHeading.innerHTML = currentLanguage === 'en' ? 'Support that<br /><em>reaches people.</em>' : 'Dukungan yang<br /><em>sampai ke warga.</em>';
+  const donationCopy = qs('#donation-links .donation-copy'); if (donationCopy) donationCopy.textContent = t('Beberapa kanal donasi yang sudah dicek dan mengarah ke halaman penggalangan dana atau lembaga penyelenggara.', 'Selected donation channels checked and linked to the campaign or organizing institution.');
+  const donationNote = qs('#donation-links .donation-note'); if (donationNote) donationNote.textContent = t('Periksa kembali tujuan dana, penerima, dan status kampanye sebelum berdonasi.', 'Please review the purpose, recipient, and campaign status before donating.');
   updateAqiInfoCopy();
   const introCopy = {
     'udara.html': ['Udara yang kita hirup,<br /><em>kita jaga bersama.</em>', 'US AQI berbasis model CAMS/Open-Meteo membantu melihat kondisi udara di seluruh Indonesia.', 'Data model diperbarui berkala dan digunakan sebagai gambaran kondisi udara per wilayah.'],
@@ -203,6 +226,7 @@ function issueField(body, label) { return body.match(new RegExp(`\\*\\*${label}:
 function verifiedUrl(value) { try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; } }
 function renderVerifiedActions(issues) { const grid = qs('#verified-actions-grid'); if (!grid) return; const cards = issues.map((issue) => { const body = issue.body || ''; const donation = verifiedUrl(issueField(body, 'URL donasi')); const evidence = verifiedUrl(issueField(body, 'URL bukti kegiatan')); const name = issueField(body, 'Nama aksi') || issue.title.replace(/^\[KURASI AKSI\]\s*/i, ''); const organization = issueField(body, 'Organisasi'); if (!donation && !evidence) return ''; return `<article class="verified-action-card"><div class="verified-action-top"><span class="eyebrow">TERVERIFIKASI</span><span class="verified-action-date">${escapeHtml(new Date(issue.updated_at).toLocaleDateString('id-ID', { dateStyle: 'medium' }))}</span></div><h3>${escapeHtml(name)}</h3>${organization ? `<p class="verified-action-org">${escapeHtml(organization)}</p>` : ''}<div class="verified-action-links">${donation ? `<a href="${escapeHtml(donation)}" target="_blank" rel="noreferrer">URL donasi resmi <span>↗</span></a>` : ''}${evidence ? `<a href="${escapeHtml(evidence)}" target="_blank" rel="noreferrer">Bukti kegiatan <span>↗</span></a>` : ''}</div></article>`; }).filter(Boolean).join(''); grid.innerHTML = cards || '<p class="data-disclaimer">Belum ada aksi terverifikasi yang dipublikasikan.</p>'; }
 async function initVerifiedActions() { const grid = qs('#verified-actions-grid'); const status = qs('#verified-actions-status'); if (!grid) return; try { const response = await fetch('https://api.github.com/repos/andrianaria/rimba-waspada/issues?state=open&labels=aksi-terverifikasi&per_page=30'); if (!response.ok) throw new Error(`GitHub HTTP ${response.status}`); const issues = (await response.json()).filter((issue) => !issue.pull_request); renderVerifiedActions(issues); if (status) status.textContent = `${issues.length} aksi terverifikasi`; } catch (error) { if (status) status.textContent = 'Daftar aksi belum tersedia'; grid.innerHTML = '<p class="data-disclaimer">Daftar aksi terverifikasi belum dapat dimuat saat ini.</p>'; } }
+function initDonationLinks() { const anchor = qs('#verified-actions'); if (!anchor || qs('#donation-links')) return; const cards = curatedDonationLinks.map((item) => `<a class="donation-card" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer"><div class="donation-card-top"><span class="eyebrow">${escapeHtml(item.source)}</span><span aria-hidden="true">↗</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><strong>${t('Buka halaman donasi', 'Open donation page')} <span>↗</span></strong></a>`).join(''); anchor.insertAdjacentHTML('beforebegin', `<section class="donation-section shell" id="donation-links"><div class="donation-heading"><div><p class="eyebrow">DUKUNGAN TERKURASI</p><h2>Dukungan yang<br /><em>sampai ke warga.</em></h2></div><div><p class="donation-copy">Beberapa kanal donasi yang sudah dicek dan mengarah ke halaman penggalangan dana atau lembaga penyelenggara.</p><p class="donation-note">Periksa kembali tujuan dana, penerima, dan status kampanye sebelum berdonasi.</p></div></div><div class="donation-grid">${cards}</div></section>`); }
 
 function aqiStatus(aqi) {
   if (aqi == null) return { label: 'N/A', tone: 'moderate' };
@@ -389,6 +413,7 @@ if (qs('#news-grid')) { initNewsFilters(); updateNewsSourceCopy(); qs('#news-sea
 if (qs('.action-section')) { document.querySelector('.page-intro')?.remove(); document.querySelector('.action-section')?.remove(); }
 initActionForm();
 initVerifiedActions();
+initDonationLinks();
 renderSharedHeader();
 applySeo();
 document.querySelectorAll('nav a[href="udara.html"]').forEach((element) => element.remove());
