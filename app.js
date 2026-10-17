@@ -212,7 +212,7 @@ async function loadAllRegencies() {
 
 async function fetchAirQuality() {
   const hourKey = new Date().toISOString().slice(0, 13);
-  const cacheKey = `rimbakita-air-quality-v3-${hourKey}-${cities.length}`;
+  const cacheKey = `rimbakita-air-quality-v4-${hourKey}-${cities.length}`;
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) return JSON.parse(cached);
