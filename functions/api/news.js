@@ -54,10 +54,10 @@ function isCurated(article) {
 }
 
 const fallbackArticles = [
-  { title: 'Berita karhutla terbaru dari Kompas', url: 'https://www.kompas.com/tag/karhutla', domain: 'www.kompas.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari Kompas.' },
-  { title: 'Berita karhutla terbaru dari detikcom', url: 'https://www.detik.com/search/searchall?query=karhutla', domain: 'www.detik.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari detikcom.' },
-  { title: 'Berita karhutla terbaru dari Tempo', url: 'https://www.tempo.co/tag/karhutla', domain: 'www.tempo.co', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari Tempo.' },
-  { title: 'Berita karhutla terbaru dari CNN Indonesia', url: 'https://www.cnnindonesia.com/tag/karhutla', domain: 'www.cnnindonesia.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari CNN Indonesia.' }
+  { source: 'Kompas', title: 'Berita karhutla terbaru dari Kompas', url: 'https://www.kompas.com/tag/karhutla', domain: 'www.kompas.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari Kompas.' },
+  { source: 'detikcom', title: 'Berita karhutla terbaru dari detikcom', url: 'https://www.detik.com/search/searchall?query=karhutla', domain: 'www.detik.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari detikcom.' },
+  { source: 'Tempo', title: 'Berita karhutla terbaru dari Tempo', url: 'https://www.tempo.co/tag/karhutla', domain: 'www.tempo.co', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari Tempo.' },
+  { source: 'CNN Indonesia', title: 'Berita karhutla terbaru dari CNN Indonesia', url: 'https://www.cnnindonesia.com/tag/karhutla', domain: 'www.cnnindonesia.com', seendate: '', description: 'Buka kumpulan berita karhutla terbaru dari CNN Indonesia.' }
 ];
 
 export async function onRequestGet() {
@@ -106,6 +106,9 @@ export async function onRequestGet() {
     const curatedArticles = articles.filter(isCurated);
     if (curatedArticles.length) articles = curatedArticles;
     articles = [...new Map(articles.map((article) => [article.url, article])).values()];
+    const availableSources = new Set(articles.map((article) => fallbackArticles.find((fallback) => article.domain?.includes(fallback.domain.replace('www.', '')))?.source).filter(Boolean));
+    const missingFallbacks = fallbackArticles.filter((article) => !availableSources.has(article.source));
+    articles = articles.concat(missingFallbacks);
     if (!articles.length) articles = fallbackArticles;
     return new Response(JSON.stringify({ articles, stale: articles === fallbackArticles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=900' } });
   } catch (error) {
