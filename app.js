@@ -66,6 +66,7 @@ function applyLanguage(lang = currentLanguage) {
   currentLanguage = lang === 'en' ? 'en' : 'id';
   localStorage.setItem('rimbakita-language', currentLanguage);
   document.documentElement.lang = currentLanguage;
+  const page = location.pathname.split('/').pop() || 'index.html';
   const labels = {
     'index.html': ['Beranda', 'Home'], 'pantauan.html': ['Pantauan', 'Monitoring'], 'udara.html': ['Kualitas udara', 'Air quality'], 'aksi.html': ['Aksi warga', 'Community action'], 'berita.html': ['Radar media', 'Media radar'], 'kontak.html': ['Kontak darurat', 'Emergency contacts'],
   };
@@ -78,14 +79,14 @@ function applyLanguage(lang = currentLanguage) {
   const heroPrimary = qs('.hero-actions .button-primary'); if (heroPrimary) heroPrimary.innerHTML = `${t('Buka peta pantauan', 'Open monitoring map')} <span>↗</span>`;
   const heroSecondary = qs('.hero-actions .text-link'); if (heroSecondary) heroSecondary.innerHTML = `${t('Cek udara kota', 'Check city air')} <span>→</span>`;
   const homeTitle = qs('#home-aqi-title'); if (homeTitle) homeTitle.textContent = t('Indeks saat ini', 'Current index');
-  const homeCopy = qs('.home-air-copy'); if (homeCopy) homeCopy.textContent = t('Dua sumber ditampilkan terpisah: US AQI berbasis model CAMS/Open-Meteo dan US AQI dari stasiun IQAir AirVisual bila tersedia.', 'Two sources are shown separately: CAMS/Open-Meteo model US AQI and IQAir AirVisual station US AQI when available.');
+  const homeCopy = qs('.home-air-copy'); if (homeCopy) homeCopy.textContent = t('US AQI berbasis model CAMS/Open-Meteo membantu melihat kondisi udara di setiap kabupaten/kota.', 'CAMS/Open-Meteo model US AQI helps show air conditions across every regency and city.');
+  const homeSideCopy = qs('.section-sidecopy'); if (homeSideCopy && page === 'index.html') homeSideCopy.textContent = t('Pantauan model CAMS untuk seluruh kabupaten/kota Indonesia.', 'CAMS model monitoring for every regency and city in Indonesia.');
   const footerLink = qs('.site-footer a'); if (footerLink) footerLink.textContent = t('Kirim dukungan', 'Send support');
   const actionHeading = qs('.submit-heading h2'); if (actionHeading) actionHeading.innerHTML = currentLanguage === 'en' ? 'Register your action,<br /><em>we review its validity before it goes live.</em>' : 'Daftarkan aksimu,<br /><em>validitas akan dikurasi terlebih dahulu sebelum live.</em>';
   const verifiedHeading = qs('.verified-actions-heading h2'); if (verifiedHeading) verifiedHeading.innerHTML = currentLanguage === 'en' ? 'Action<br /><em>directory.</em>' : 'Daftar<br /><em>aksi.</em>';
   updateAqiInfoCopy();
-  const page = location.pathname.split('/').pop() || 'index.html';
   const introCopy = {
-    'udara.html': ['Udara yang kita hirup,<br /><em>kita jaga bersama.</em>', 'Two live sources are shown separately: CAMS/Open-Meteo model US AQI and IQAir AirVisual station US AQI when available.', 'Compare CAMS model values with IQAir station readings without mixing sources, times, or methods.'],
+    'udara.html': ['Udara yang kita hirup,<br /><em>kita jaga bersama.</em>', 'US AQI berbasis model CAMS/Open-Meteo membantu melihat kondisi udara di seluruh Indonesia.', 'Data model diperbarui berkala dan digunakan sebagai gambaran kondisi udara per wilayah.'],
     'aksi.html': ['Informasi adalah<br /><em>pertolongan pertama.</em>', 'We can help without adding risk: protect yourself, send useful reports, and support official channels.', 'Close windows, use a suitable mask, and limit outdoor activity when air quality worsens.'],
     'berita.html': ['Suara publik,<br /><em>dipantau bersama.</em>', 'Follow the latest wildfire coverage from a curated list of Indonesian media domains. Read the full article on the publisher’s site; we do not copy the article text.', 'Kompas, detikcom, Tempo, and CNN Indonesia are monitored for relevant updates.'],
   };
@@ -94,9 +95,9 @@ function applyLanguage(lang = currentLanguage) {
     const heading = intro?.querySelector('h1');
     const copy = intro?.querySelector('p:not(.eyebrow)');
     if (heading && currentLanguage === 'en') heading.innerHTML = introCopy[page][0].replace('Udara yang kita hirup,', 'The air we breathe,').replace('kita jaga bersama.', 'we care for together.').replace('Informasi adalah', 'Information is').replace('pertolongan pertama.', 'first aid.').replace('Suara publik,', 'Public voices,').replace('dipantau bersama.', 'followed together.');
-    if (copy && currentLanguage === 'en') copy.textContent = introCopy[page][1];
+    if (copy) copy.textContent = currentLanguage === 'en' ? introCopy[page][1] : (page === 'udara.html' ? 'US AQI berbasis model CAMS/Open-Meteo membantu melihat kondisi udara di seluruh Indonesia.' : copy.textContent);
     const methodCopy = intro?.nextElementSibling?.querySelector('.method-copy p');
-    if (methodCopy && currentLanguage === 'en') methodCopy.textContent = introCopy[page][2];
+    if (methodCopy) methodCopy.textContent = currentLanguage === 'en' ? introCopy[page][2] : (page === 'udara.html' ? 'Data model diperbarui berkala dan digunakan sebagai gambaran kondisi udara per wilayah.' : methodCopy.textContent);
   }
   const titles = { 'index.html': ['Rimba Kita — Pantau Karhutla Indonesia', 'Rimba Kita — Indonesia Wildfire Monitoring'], 'pantauan.html': ['Pantauan — Rimba Kita', 'Monitoring — Rimba Kita'], 'udara.html': ['Kualitas Udara — Rimba Kita', 'Air Quality — Rimba Kita'], 'aksi.html': ['Aksi Warga — Rimba Kita', 'Community Action — Rimba Kita'], 'berita.html': ['Radar Media — Rimba Kita', 'Media Radar — Rimba Kita'], 'kontak.html': ['Kontak Darurat — Rimba Kita', 'Emergency Contacts — Rimba Kita'] };
   if (titles[page]) document.title = titles[page][currentLanguage === 'en' ? 1 : 0];
@@ -133,7 +134,7 @@ function initMobileMenu() {
 function updateAqiInfoCopy() {
   const panel = qs('#aqi-info-panel');
   if (!panel) return;
-  panel.innerHTML = currentLanguage === 'en' ? '<button class="aqi-info-close" type="button" aria-label="Close explanation">×</button><strong>What do these air-quality numbers mean?</strong><p><b>Air quality from CAMS</b> is a numerical estimate from the Copernicus Atmosphere Monitoring Service, delivered here through Open-Meteo. It models pollution across an area, so it may differ from a nearby station.</p><p><b>Air quality from IQAir sensor</b> is a reading from an AirVisual monitoring station. It represents a specific sensor location and its latest reported measurement.</p><p>Both use the US AQI scale. Differences are normal because the source, location, update time, and method are different.</p>' : '<button class="aqi-info-close" type="button" aria-label="Tutup penjelasan">×</button><strong>Apa arti angka kualitas udara ini?</strong><p><b>Air quality from CAMS</b> adalah estimasi numerik dari Copernicus Atmosphere Monitoring Service yang ditampilkan melalui Open-Meteo. Data ini memodelkan polusi di suatu wilayah, sehingga bisa berbeda dari stasiun terdekat.</p><p><b>Air quality from IQAir sensor</b> adalah pembacaan dari stasiun pemantauan AirVisual. Angka ini mewakili lokasi sensor tertentu dan laporan pengukuran terbaru.</p><p>Keduanya menggunakan skala US AQI. Perbedaan angka wajar karena sumber, lokasi, waktu pembaruan, dan metodenya berbeda.</p>';
+  panel.innerHTML = currentLanguage === 'en' ? '<button class="aqi-info-close" type="button" aria-label="Close explanation">×</button><strong>What does this air-quality number mean?</strong><p><b>Air quality from CAMS</b> is a numerical estimate from the Copernicus Atmosphere Monitoring Service, delivered here through Open-Meteo. It models pollution across an area, so it can differ from a nearby station.</p><p>The US AQI scale translates pollution levels into health guidance. Higher numbers mean the air needs more attention.</p>' : '<button class="aqi-info-close" type="button" aria-label="Tutup penjelasan">×</button><strong>Apa arti angka kualitas udara ini?</strong><p><b>Air quality from CAMS</b> adalah estimasi numerik dari Copernicus Atmosphere Monitoring Service yang ditampilkan melalui Open-Meteo. Data ini memodelkan polusi di suatu wilayah, sehingga bisa berbeda dari stasiun terdekat.</p><p>Skala US AQI menerjemahkan tingkat polusi menjadi panduan kesehatan. Angka lebih tinggi berarti udara perlu lebih diwaspadai.</p>';
   panel.querySelector('.aqi-info-close')?.addEventListener('click', () => { panel.hidden = true; qs('#aqi-info-button')?.setAttribute('aria-expanded', 'false'); });
 }
 
@@ -254,7 +255,7 @@ function renderCities(data) {
   if (!grid) return;
   const query = (qs('#city-search')?.value || '').toLowerCase();
   const filtered = data.filter((city) => `${city.name} ${city.province}`.toLowerCase().includes(query)).sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1));
-  grid.innerHTML = filtered.length ? filtered.map((city) => { const status = aqiStatus(city.aqi); const sensorStatus = aqiStatus(city.iqair?.aqi); return `<article class="air-card"><div class="air-card-top"><div><div class="city-name">${escapeHtml(city.name)}</div><div class="province">${escapeHtml(city.province)}</div></div><span class="air-badge ${status.tone}">${status.label}</span></div><div class="aqi-dual"><div class="aqi-source-card"><strong class="aqi-number">${city.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />model CAMS</span></div><div class="aqi-source-card sensor"><strong class="aqi-number">${city.iqair?.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />IQAir sensor</span></div></div><div class="aqi-source-labels"><span>Open-Meteo</span><span>${city.iqair ? `${escapeHtml(city.iqair.station || 'Stasiun IQAir')} · ${escapeHtml(sensorStatus.label)}` : 'Stasiun IQAir tidak tersedia'}</span></div><div class="pm">PM2.5 model · ${city.pm25 == null ? '—' : `${Number(city.pm25).toFixed(1)} µg/m³`} · live</div><div class="card-time">${city.time ? `${city.time.replace('T', ' ')} · ${city.timezone}` : 'waktu tidak tersedia'}</div></article>`; }).join('') : '<p class="data-disclaimer">Kota tidak ditemukan.</p>';
+  grid.innerHTML = filtered.length ? filtered.map((city) => { const status = aqiStatus(city.aqi); return `<article class="air-card"><div class="air-card-top"><div><div class="city-name">${escapeHtml(city.name)}</div><div class="province">${escapeHtml(city.province)}</div></div><span class="air-badge ${status.tone}">${status.label}</span></div><div class="aqi-single"><strong class="aqi-number">${city.aqi ?? '—'}</strong><span class="aqi-label">US AQI<br />model CAMS</span></div><div class="aqi-source-labels"><span>Open-Meteo · CAMS</span></div><div class="pm">PM2.5 model · ${city.pm25 == null ? '—' : `${Number(city.pm25).toFixed(1)} µg/m³`} · live</div><div class="card-time">${city.time ? `${city.time.replace('T', ' ')} · ${city.timezone}` : 'waktu tidak tersedia'}</div></article>`; }).join('') : '<p class="data-disclaimer">Kota tidak ditemukan.</p>';
 }
 
 function renderHomeWorst(data, iqairPayload) {
@@ -283,23 +284,18 @@ async function initAir() {
     const homeOnly = !!qs('#home-aqi-grid') && !grid;
     if (!homeOnly) cities = await loadAllRegencies();
     const data = await fetchAirQuality();
-    let iqairPayload = { configured: false, data: [] };
-    try { const iqairResponse = await fetch('/api/iqair?source=iqair-v3'); if (iqairResponse.ok) iqairPayload = await iqairResponse.json(); } catch { /* model data remains usable when IQAir is unavailable */ }
-    const iqairByName = new Map((iqairPayload.data || []).map((item) => [item.requestedName, item]));
-    data.forEach((city) => { city.iqair = iqairByName.get(city.name) || null; });
+    const iqairPayload = { configured: false, data: [] };
     window.airData = data;
     renderCities(data);
-    document.querySelectorAll('.aqi-source-card.sensor .aqi-label').forEach((label) => { label.innerHTML = 'US AQI<br />IQAir kota'; });
-    document.querySelectorAll('.aqi-source-labels span:last-child').forEach((label) => { label.textContent = label.textContent.replace(/Stasiun IQAir tidak tersedia/g, 'AQI kota IQAir tidak tersedia').replace(/Stasiun IQAir/g, 'IQAir'); });
     renderHomeWorst(data, iqairPayload);
     const rankedIqair = data.filter((city) => city.iqair?.aqi != null).sort((a, b) => b.iqair.aqi - a.iqair.aqi).slice(0, 5);
     document.querySelectorAll('.home-aqi-card .home-aqi-value span').forEach((label, index) => { const modelAqi = rankedIqair[index]?.aqi; label.innerHTML = `US AQI · IQAir<br />${t('tingkat kota', 'city level')}<br /><small>US AQI CAMS: ${modelAqi ?? '—'}</small>`; });
     const worst = [...data].sort((a, b) => (b.aqi ?? -1) - (a.aqi ?? -1))[0];
-    if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI model · IQAir ${iqairPayload.configured ? `${iqairPayload.data?.length || 0} stasiun${iqairPayload.errors?.some((error) => error.includes('permission_denied')) ? ' · akses endpoint ditolak' : ''}` : 'belum terhubung'}`;
-    const homeCopy = document.querySelector('.home-air-copy'); if (homeCopy) homeCopy.textContent = t('Dua sumber ditampilkan terpisah: US AQI berbasis model CAMS/Open-Meteo dan US AQI dari stasiun IQAir AirVisual bila tersedia.', 'Two sources are shown separately: CAMS/Open-Meteo model US AQI and IQAir AirVisual station US AQI when available.');
-    const disclaimer = document.querySelector('.air-page .data-disclaimer'); if (disclaimer) disclaimer.textContent = 'Model: Open-Meteo Air Quality API (CAMS). Sensor: IQAir AirVisual API. Angka kosong berarti stasiun IQAir tidak tersedia atau belum mengirim data untuk kota tersebut.';
-    const methodology = document.querySelector('.air-page')?.nextElementSibling; if (methodology) { const title = methodology.querySelector('strong'); const copy = methodology.querySelector('p'); if (title) title.textContent = 'Model + sensor'; if (copy) copy.textContent = 'Bandingkan angka model CAMS dan pembacaan stasiun IQAir tanpa mencampur sumber, waktu, atau metodologinya.'; }
-    const footerSource = document.querySelector('.site-footer span:nth-child(2)'); if (footerSource) footerSource.textContent = 'Data udara: CAMS + IQAir bila tersedia';
+    if (status) status.textContent = `LIVE · ${data.length} kabupaten/kota · tertinggi ${worst?.name || '—'} ${worst?.aqi ?? '—'} US AQI model CAMS`;
+    const homeCopy = document.querySelector('.home-air-copy'); if (homeCopy) homeCopy.textContent = t('US AQI berbasis model CAMS/Open-Meteo membantu melihat kondisi udara di setiap kabupaten/kota.', 'CAMS/Open-Meteo model US AQI helps show air conditions across every regency and city.');
+    const disclaimer = document.querySelector('.air-page .data-disclaimer'); if (disclaimer) disclaimer.textContent = 'Sumber: Open-Meteo Air Quality API berbasis model CAMS. IQAir sementara disembunyikan.';
+    const methodology = document.querySelector('.air-page')?.nextElementSibling; if (methodology) { const title = methodology.querySelector('strong'); const copy = methodology.querySelector('p'); if (title) title.textContent = 'Model CAMS'; if (copy) copy.textContent = 'Data model membantu membaca pola kualitas udara per wilayah. Angka ini bukan pengganti pengukuran sensor lapangan.'; }
+    const footerSource = document.querySelector('.site-footer span:nth-child(2)'); if (footerSource) footerSource.textContent = 'Data udara: model CAMS';
     if (homeStatus) homeStatus.textContent = 'Kualitas udara live terhubung';
   } catch (error) {
     if (status) status.textContent = 'Gagal mengambil feed live · coba refresh';
