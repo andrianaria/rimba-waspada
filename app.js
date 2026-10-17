@@ -31,6 +31,19 @@ const SITE_BRAND = 'Rimba Kita';
 let currentLanguage = localStorage.getItem('rimbakita-language') || 'id';
 function t(id, en) { return currentLanguage === 'en' ? en : id; }
 const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+const sharedNavigation = [
+  ['index.html', 'Beranda'],
+  ['pantauan.html', 'Pantauan'],
+  ['aksi.html', 'Aksi warga'],
+  ['berita.html', 'Radar media'],
+  ['kontak.html', 'Kontak darurat'],
+];
+function renderSharedHeader() {
+  const header = qs('.site-header');
+  const page = location.pathname.split('/').pop() || 'index.html';
+  if (!header || page === 'admin.html') return;
+  header.innerHTML = `<a class="brand" href="index.html"><img class="brand-logo" src="assets/rimba-kita-logo.svg" alt="Rimba Kita" /></a><nav id="site-navigation" aria-label="Navigasi utama">${sharedNavigation.map(([href, label]) => `<a class="${href === page ? 'active' : ''}" href="${href}">${label}</a>`).join('')}</nav>`;
+}
 function applySeo() {
   const page = location.pathname.split('/').pop() || 'index.html';
   const seo = {
@@ -369,7 +382,7 @@ if (qs('#news-grid')) { initNewsFilters(); updateNewsSourceCopy(); qs('#news-sea
 if (qs('.action-section')) { document.querySelector('.page-intro')?.remove(); document.querySelector('.action-section')?.remove(); }
 initActionForm();
 initVerifiedActions();
-const nav = document.querySelector('nav'); if (nav && !nav.querySelector('a[href="berita.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="berita.html">Radar media</a>'); if (nav && !nav.querySelector('a[href="kontak.html"]')) nav.insertAdjacentHTML('beforeend', '<a href="kontak.html">Kontak darurat</a>');
+renderSharedHeader();
 applySeo();
 document.querySelectorAll('nav a[href="udara.html"]').forEach((element) => element.remove());
 const homeAqiSection = document.querySelector('.home-aqi-section'); if (homeAqiSection) { homeAqiSection.id = 'home-aqi-section'; document.querySelectorAll('a[href="udara.html"]').forEach((link) => { link.href = 'index.html#home-aqi-section'; }); }
