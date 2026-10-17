@@ -25,7 +25,7 @@ function parseRss(xml, defaultDomain = '') {
   }).filter((article) => article.title && article.url && article.domain);
 }
 
-async function fetchWithTimeout(url, timeoutMs = 12000) {
+async function fetchWithTimeout(url, timeoutMs = 5000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -69,17 +69,15 @@ export async function onRequestGet() {
       ['CNN Indonesia', 'site:cnnindonesia.com karhutla Indonesia', 'cnnindonesia.com']
     ];
     const broadEndpoint = 'https://news.google.com/rss/search?q=karhutla+Indonesia&hl=id&gl=ID&ceid=ID:id';
-    const broadResponse = await fetchWithTimeout(broadEndpoint);
-    let articles = broadResponse.ok ? parseGoogleNews(await broadResponse.text()) : [];
-
-    const missingQueries = queries.filter(([, , domain]) => !articles.some((article) => article.domain.includes(domain)));
-    const sourceResults = await Promise.allSettled(missingQueries.map(async ([source, query]) => {
+    const sourceResults = queries.map(async ([source, query]) => {
       const endpoint = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`;
-      const response = await fetchWithTimeout(endpoint, 9000);
+      const response = await fetchWithTimeout(endpoint);
       if (!response.ok) return [];
       return parseGoogleNews(await response.text()).map((article) => ({ ...article, source }));
-    }));
-    articles = articles.concat(sourceResults.flatMap((result) => result.status === 'fulfilled' ? result.value : []));
+    });
+    const [broadResult, ...sourceResultsSettled] = await Promise.allSettled([fetchWithTimeout(broadEndpoint), ...sourceResults]);
+    let articles = sourceResultsSettled.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
+    if (broadResult.status === 'fulfilled' && broadResult.value.ok) articles = articles.concat(parseGoogleNews(await broadResult.value.text()));
 
     if (!articles.length) {
       const directFeeds = [
@@ -99,7 +97,7 @@ export async function onRequestGet() {
     if (!articles.length) {
       const query = encodeURIComponent('(karhutla OR "kebakaran hutan" OR "kebakaran lahan") Indonesia');
       const endpoint = `https://api.gdeltproject.org/api/v2/doc/doc?query=${query}&mode=artlist&maxrecords=100&format=json&sort=datedesc&timespan=7d`;
-      const upstream = await fetchWithTimeout(endpoint);
+      const upstream = await fetchWithTimeout(endpoint, 4000);
       if (upstream.ok) articles = parseGdelt(await upstream.json());
     }
 

@@ -160,14 +160,21 @@ function initAqiInfo() {
   qs('#aqi-info-button').addEventListener('click', () => { const panel = qs('#aqi-info-panel'); panel.hidden = !panel.hidden; qs('#aqi-info-button').setAttribute('aria-expanded', String(!panel.hidden)); });
 }
 async function fetchNews() {
+  const cacheKey = 'rimbakita-news-cache-v1';
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch {}
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
+  const timer = setTimeout(() => controller.abort(), 10000);
   try {
     const response = await fetch('/api/news?view=curated', { signal: controller.signal });
     if (!response.ok) throw new Error(`Indeks berita HTTP ${response.status}`);
     const payload = await response.json();
-    return (payload.articles || []).map((article) => ({ ...article, source: articleSource(article) || article.domain || 'Media' })).filter((article) => article.url && article.title);
+    const articles = (payload.articles || []).map((article) => ({ ...article, source: articleSource(article) || article.source || article.domain || 'Media' })).filter((article) => article.url && article.title);
+    if (articles.length) localStorage.setItem(cacheKey, JSON.stringify({ savedAt: new Date().toISOString(), articles }));
+    window.newsDataStale = Boolean(payload.stale);
+    return articles;
   } catch (error) {
+    if (cached?.articles?.length) { window.newsDataStale = true; return cached.articles; }
     if (error?.name === 'AbortError') throw new Error('Permintaan berita timeout. Coba muat ulang.');
     throw error;
   } finally {
@@ -178,7 +185,7 @@ function formatNewsDate(value) { if (!value) return 'waktu tidak tersedia'; cons
 function renderNews(articles) { const grid = qs('#news-grid'); if (!grid) return; const query = (qs('#news-search')?.value || '').toLowerCase(); const source = document.querySelector('.filter-button.active')?.dataset.source || 'all'; const filtered = articles.filter((article) => (source === 'all' || article.source === source) && `${article.title} ${article.domain}`.toLowerCase().includes(query)); grid.innerHTML = filtered.length ? filtered.slice(0, 60).map((article) => `<a class="news-card" href="${escapeHtml(article.url)}" target="_blank" rel="noreferrer"><div class="news-card-top"><span class="news-source">${escapeHtml(article.source)}</span><span class="news-date">${escapeHtml(formatNewsDate(article.seendate))}</span></div><h3>${escapeHtml(article.title)}</h3><div class="news-card-bottom"><span>${escapeHtml(article.domain)}</span><strong>Baca artikel ↗</strong></div></a>`).join('') : '<p class="data-disclaimer">Belum ada artikel dari domain kurasi pada hasil live saat ini. Coba kata kunci lain atau buka situs sumber langsung.'; }
 function renderNewsTicker(articles) { const track = qs('#news-ticker-track'); if (!track) return; const items = articles.slice(0, 12).map((article) => `<a href="${escapeHtml(article.url)}" target="_blank" rel="noreferrer"><strong>${escapeHtml(article.source)}</strong><span>${escapeHtml(article.title)}</span></a>`); track.innerHTML = items.length ? `${items.join('<i aria-hidden="true">•</i>')}${items.join('<i aria-hidden="true">•</i>')}` : '<span>Belum ada berita karhutla dari media kurasi.</span>'; }
 async function initNewsTicker() { try { renderNewsTicker(await fetchNews()); } catch { const track = qs('#news-ticker-track'); if (track) track.textContent = 'Berita karhutla belum tersedia saat ini.'; } }
-async function initNews() { const status = qs('#news-status'); const grid = qs('#news-grid'); try { const articles = await fetchNews(); window.newsData = articles; renderNews(articles); if (status) status.textContent = `LIVE · ${articles.length} artikel dari domain kurasi`; } catch (error) { if (status) status.textContent = `Indeks media belum tersedia · ${error.message}`; if (grid) grid.innerHTML = '<p class="data-disclaimer">Berita belum dapat dimuat saat ini. Coba muat ulang beberapa saat lagi.</p>'; } }
+async function initNews() { const status = qs('#news-status'); const grid = qs('#news-grid'); if (grid) grid.innerHTML = '<p class="data-disclaimer">Memuat berita terbaru…</p>'; try { const articles = await fetchNews(); window.newsData = articles; renderNews(articles); if (status) status.textContent = `${window.newsDataStale ? 'CACHE ·' : 'LIVE ·'} ${articles.length} artikel dari empat media kurasi`; } catch (error) { if (status) status.textContent = `Indeks media belum tersedia · ${error.message}`; if (grid) grid.innerHTML = '<p class="data-disclaimer">Berita belum dapat dimuat saat ini. Coba muat ulang beberapa saat lagi.</p>'; } }
 function newsSummary(value, title = '') { let summary = String(value || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); if (title && summary.toLowerCase().startsWith(title.toLowerCase())) summary = summary.slice(title.length).replace(/^\s*[-–—:]\s*/, '').trim(); return summary.slice(0, 220); }
 function newsTimestamp(value) { const match = String(value || '').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/); const parsed = match ? new Date(`${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}Z`) : new Date(value); return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime(); }
 function renderNews(articles) { const grid = qs('#news-grid'); if (!grid) return; const query = (qs('#news-search')?.value || '').toLowerCase(); const source = document.querySelector('.filter-button.active')?.dataset.source || 'all'; const filtered = articles.filter((article) => (source === 'all' || article.source === source) && `${article.title} ${article.domain}`.toLowerCase().includes(query)).sort((a, b) => newsTimestamp(b.seendate) - newsTimestamp(a.seendate)); grid.innerHTML = filtered.length ? filtered.slice(0, 60).map((article) => `<a class="news-card" href="${escapeHtml(article.url)}" target="_blank" rel="noreferrer"><div class="news-card-top"><span class="news-source">${escapeHtml(article.source)}</span><span class="news-date">${escapeHtml(formatNewsDate(article.seendate))}</span></div><h3>${escapeHtml(article.title)}</h3><p class="news-summary">${escapeHtml(newsSummary(article.description || article.snippet, article.title) || 'Ringkasan singkat belum tersedia. Buka berita untuk membaca konteks lengkapnya.')}</p><div class="news-card-bottom"><span>${escapeHtml(article.domain)}</span><strong>Buka berita ↗</strong></div></a>`).join('') : '<p class="data-disclaimer">Belum ada artikel dari empat media kurasi pada hasil live saat ini.'; }
