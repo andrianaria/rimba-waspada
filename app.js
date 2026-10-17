@@ -42,7 +42,7 @@ function renderSharedHeader() {
   const header = qs('.site-header');
   const page = location.pathname.split('/').pop() || 'index.html';
   if (!header || page === 'admin.html') return;
-  header.innerHTML = `<a class="brand" href="index.html"><img class="brand-logo" src="assets/rimba-kita-logo.svg" alt="Rimba Kita" /></a><nav id="site-navigation" aria-label="Navigasi utama">${sharedNavigation.map(([href, label]) => `<a class="${href === page ? 'active' : ''}" href="${href}">${label}</a>`).join('')}</nav>`;
+  header.innerHTML = `<a class="brand" href="index.html"><img class="brand-logo" src="assets/rimba-kita-logo.svg" alt="Rimba Kita" /></a><nav id="site-navigation" aria-label="Navigasi utama">${sharedNavigation.map(([href, label]) => `<a class="${href === page || (page === 'ajukan-aksi.html' && href === 'aksi.html') ? 'active' : ''}" href="${href}">${label}</a>`).join('')}</nav>`;
 }
 function applySeo() {
   const page = location.pathname.split('/').pop() || 'index.html';
@@ -51,7 +51,8 @@ function applySeo() {
     'pantauan.html': { title: 'Pantau Karhutla Indonesia — Peta Hotspot NASA FIRMS | Rimba Kita', description: 'Pantau keadaan karhutla Indonesia melalui peta hotspot NASA FIRMS, sinyal panas satelit, dan atmosfer karbon monoksida.', keywords: 'pantau karhutla, keadaan karhutla, peta hotspot, NASA FIRMS, titik panas, kebakaran hutan Indonesia' },
     'udara.html': { title: 'Kualitas Udara Indonesia — AQI & PM2.5 | Rimba Kita', description: 'Cek kualitas udara Indonesia, US AQI berbasis model CAMS, AQI IQAir bila tersedia, PM2.5, dan kota dengan udara paling perlu diwaspadai.', keywords: 'kualitas udara Indonesia, AQI Indonesia, US AQI, IQAir, PM2.5, kabut asap karhutla' },
     'berita.html': { title: 'Berita Karhutla Indonesia Terbaru — Radar Media | Rimba Kita', description: 'Berita karhutla Indonesia terbaru dari Kompas, detikcom, Tempo, dan CNN Indonesia, diringkas dengan tautan ke artikel asli.', keywords: 'berita karhutla, berita kebakaran hutan, kabut asap terbaru, Kompas karhutla, detik karhutla, Tempo karhutla' },
-    'aksi.html': { title: 'Aksi Warga untuk Karhutla — Rimba Kita', description: 'Daftarkan aksi warga untuk membantu menghadapi karhutla, kabut asap, dan dampak kebakaran hutan dengan proses kurasi yang jelas.', keywords: 'aksi warga karhutla, bantuan kebakaran hutan, lapor karhutla, dukungan warga, bantuan kabut asap' },
+    'aksi.html': { title: 'Daftar Aksi Warga untuk Karhutla — Rimba Kita', description: 'Lihat daftar aksi warga dan kanal donasi terkurasi untuk membantu menghadapi karhutla, kabut asap, dan dampak kebakaran hutan.', keywords: 'aksi warga karhutla, bantuan kebakaran hutan, donasi karhutla, dukungan warga, bantuan kabut asap' },
+    'ajukan-aksi.html': { title: 'Daftarkan Aksi Warga — Rimba Kita', description: 'Ajukan aksi warga atau kampanye bantuan karhutla untuk ditinjau dan dikurasi sebelum ditampilkan di Rimba Kita.', keywords: 'daftar aksi warga, ajukan bantuan karhutla, kampanye karhutla, donasi kebakaran hutan' },
     'kontak.html': { title: 'Kontak Darurat Karhutla Indonesia | Rimba Kita', description: 'Kontak darurat untuk wilayah terdampak karhutla, kebakaran hutan, kabut asap, dan keadaan yang mengancam keselamatan.', keywords: 'kontak darurat karhutla, pemadam kebakaran, BPBD, kabut asap, nomor darurat Indonesia' },
   }[page] || {};
   if (!seo.title) return;
@@ -107,7 +108,7 @@ function applyLanguage(lang = currentLanguage) {
   document.documentElement.lang = currentLanguage;
   const page = location.pathname.split('/').pop() || 'index.html';
   const labels = {
-    'index.html': ['Beranda', 'Home'], 'pantauan.html': ['Pantauan', 'Monitoring'], 'udara.html': ['Kualitas udara', 'Air quality'], 'aksi.html': ['Aksi warga', 'Community action'], 'berita.html': ['Radar media', 'Media radar'], 'kontak.html': ['Kontak darurat', 'Emergency contacts'],
+    'index.html': ['Beranda', 'Home'], 'pantauan.html': ['Pantauan', 'Monitoring'], 'udara.html': ['Kualitas udara', 'Air quality'], 'aksi.html': ['Aksi warga', 'Community action'], 'ajukan-aksi.html': ['Aksi warga', 'Community action'], 'berita.html': ['Radar media', 'Media radar'], 'kontak.html': ['Kontak darurat', 'Emergency contacts'],
   };
   document.querySelectorAll('.site-header nav a').forEach((link) => { const key = Object.keys(labels).find((path) => link.getAttribute('href')?.split('#')[0].endsWith(path)); if (key) link.textContent = labels[key][currentLanguage === 'en' ? 1 : 0]; });
   const report = qs('.header-button'); if (report) report.textContent = t('Laporkan', 'Report');
@@ -139,7 +140,7 @@ function applyLanguage(lang = currentLanguage) {
     const methodCopy = intro?.nextElementSibling?.querySelector('.method-copy p');
     if (methodCopy) methodCopy.textContent = currentLanguage === 'en' ? introCopy[page][2] : (page === 'udara.html' ? 'Data model diperbarui berkala dan digunakan sebagai gambaran kondisi udara per wilayah.' : methodCopy.textContent);
   }
-  const titles = { 'index.html': ['Rimba Kita — Pantau Karhutla Indonesia', 'Rimba Kita — Indonesia Wildfire Monitoring'], 'pantauan.html': ['Pantauan — Rimba Kita', 'Monitoring — Rimba Kita'], 'udara.html': ['Kualitas Udara — Rimba Kita', 'Air Quality — Rimba Kita'], 'aksi.html': ['Aksi Warga — Rimba Kita', 'Community Action — Rimba Kita'], 'berita.html': ['Radar Media — Rimba Kita', 'Media Radar — Rimba Kita'], 'kontak.html': ['Kontak Darurat — Rimba Kita', 'Emergency Contacts — Rimba Kita'] };
+  const titles = { 'index.html': ['Rimba Kita — Pantau Karhutla Indonesia', 'Rimba Kita — Indonesia Wildfire Monitoring'], 'pantauan.html': ['Pantauan — Rimba Kita', 'Monitoring — Rimba Kita'], 'udara.html': ['Kualitas Udara — Rimba Kita', 'Air Quality — Rimba Kita'], 'aksi.html': ['Aksi Warga — Rimba Kita', 'Community Action — Rimba Kita'], 'ajukan-aksi.html': ['Daftarkan Aksi — Rimba Kita', 'Register an Action — Rimba Kita'], 'berita.html': ['Radar Media — Rimba Kita', 'Media Radar — Rimba Kita'], 'kontak.html': ['Kontak Darurat — Rimba Kita', 'Emergency Contacts — Rimba Kita'] };
   if (titles[page]) document.title = titles[page][currentLanguage === 'en' ? 1 : 0];
   document.querySelectorAll('.language-switcher button').forEach((button) => { button.classList.toggle('active', button.dataset.lang === currentLanguage); button.setAttribute('aria-pressed', String(button.dataset.lang === currentLanguage)); });
   const mobileButton = qs('#mobile-menu-button');
@@ -232,6 +233,7 @@ function donationRowsHtml() { return curatedDonationLinks.map((item) => `<a clas
 function renderVerifiedActions(issues) { const grid = qs('#verified-actions-grid'); if (!grid) return; const cards = issues.map((issue) => { const body = issue.body || ''; const donation = verifiedUrl(issueField(body, 'URL donasi')); const evidence = verifiedUrl(issueField(body, 'URL bukti kegiatan')); const name = issueField(body, 'Nama aksi') || issue.title.replace(/^\[KURASI AKSI\]\s*/i, ''); const organization = issueField(body, 'Organisasi'); if (!donation && !evidence) return ''; return `<article class="verified-action-card"><div class="verified-action-top"><span class="eyebrow">TERVERIFIKASI</span><span class="verified-action-date">${escapeHtml(new Date(issue.updated_at).toLocaleDateString('id-ID', { dateStyle: 'medium' }))}</span></div><h3>${escapeHtml(name)}</h3>${organization ? `<p class="verified-action-org">${escapeHtml(organization)}</p>` : ''}<div class="verified-action-links">${donation ? `<a href="${escapeHtml(donation)}" target="_blank" rel="noreferrer">URL donasi resmi <span>↗</span></a>` : ''}${evidence ? `<a href="${escapeHtml(evidence)}" target="_blank" rel="noreferrer">Bukti kegiatan <span>↗</span></a>` : ''}</div></article>`; }).filter(Boolean).join(''); grid.innerHTML = `${donationRowsHtml()}${cards}`; grid.dataset.donationsLoaded = 'true'; grid.querySelectorAll('img').forEach((image) => image.addEventListener('error', () => image.remove())); }
 async function initVerifiedActions() { const grid = qs('#verified-actions-grid'); const status = qs('#verified-actions-status'); if (!grid) return; try { const response = await fetch('https://api.github.com/repos/andrianaria/rimba-waspada/issues?state=open&labels=aksi-terverifikasi&per_page=30'); if (!response.ok) throw new Error(`GitHub HTTP ${response.status}`); const issues = (await response.json()).filter((issue) => !issue.pull_request); renderVerifiedActions(issues); if (status) status.textContent = `${issues.length} aksi terverifikasi`; } catch (error) { if (status) status.textContent = 'Daftar aksi belum tersedia'; grid.innerHTML = donationRowsHtml(); grid.dataset.donationsLoaded = 'true'; grid.querySelectorAll('img').forEach((image) => image.addEventListener('error', () => image.remove())); } }
 function initDonationLinks() { const grid = qs('#verified-actions-grid'); if (!grid || grid.dataset.donationsLoaded) return; grid.innerHTML = donationRowsHtml(); grid.dataset.donationsLoaded = 'true'; grid.querySelectorAll('img').forEach((image) => image.addEventListener('error', () => image.remove())); }
+function initActionDirectoryPage() { if ((location.pathname.split('/').pop() || 'index.html') !== 'aksi.html') return; qs('#submit-aksi')?.remove(); const heading = qs('.verified-actions-heading'); if (heading && !heading.querySelector('.action-new-button')) heading.insertAdjacentHTML('beforeend', '<a class="button button-primary action-new-button" href="ajukan-aksi.html">Daftar aksi warga baru <span>↗</span></a>'); }
 
 function aqiStatus(aqi) {
   if (aqi == null) return { label: 'N/A', tone: 'moderate' };
@@ -416,6 +418,7 @@ moveAirQualityToHome();
 if (qs('#city-grid') || qs('#home-aqi-grid')) { qs('#city-search')?.addEventListener('input', () => renderCities(window.airData || [])); initAir(); }
 if (qs('#news-grid')) { initNewsFilters(); updateNewsSourceCopy(); qs('#news-search').addEventListener('input', () => renderNews(window.newsData || [])); document.querySelectorAll('.filter-button').forEach((button) => button.addEventListener('click', () => { document.querySelectorAll('.filter-button').forEach((item) => item.classList.remove('active')); button.classList.add('active'); renderNews(window.newsData || []); })); initNews(); }
 if (qs('.action-section')) { document.querySelector('.page-intro')?.remove(); document.querySelector('.action-section')?.remove(); }
+initActionDirectoryPage();
 initActionForm();
 initVerifiedActions();
 initDonationLinks();

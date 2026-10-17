@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daftarkan Aksi Warga — Rimba Kita</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><img class="brand-logo" src="assets/rimba-kita-logo.svg" alt="Rimba Kita" /></a>
+    <nav aria-label="Navigasi utama"></nav>
+  </header>
+  <main>
+    <section class="submit-section shell" id="submit-aksi">
+      <div class="submit-heading">
+        <div>
+          <p class="eyebrow">DAFTARKAN AKSI</p>
+          <h2>Daftarkan aksimu,<br /><em>validitas dikurasi sebelum live.</em></h2>
+        </div>
+        <p>Bagikan aksi bantuan yang dapat dipercaya. Pengajuan akan diperiksa terlebih dahulu sebelum masuk ke daftar aksi warga.</p>
+      </div>
+      <form class="action-form" id="action-form">
+        <label>Nama aksi<input name="name" required placeholder="Contoh: Posko Asap Riau 2026" /></label>
+        <label>Organisasi penyelenggara<input name="organization" required placeholder="Nama yayasan, komunitas, atau lembaga" /></label>
+        <label>URL donasi resmi<input name="donation" required type="url" placeholder="https://contoh.org/donasi" /></label>
+        <label>URL bukti kegiatan<input name="evidence" required type="url" placeholder="Proposal, laporan, atau publikasi resmi" /></label>
+        <label>Kontak verifikasi<input name="contact" required placeholder="Email domain organisasi atau kontak publik" /></label>
+        <label>Detail aksi<textarea name="details" required rows="4" placeholder="Lokasi, tujuan, periode, target dana, dan penggunaan dana"></textarea></label>
+        <label class="consent"><input name="consent" type="checkbox" required /> Saya mengizinkan Rimba Kita melakukan verifikasi dan menampilkan metadata aksi yang lolos kurasi.</label>
+        <button class="button button-primary" type="submit">Kirim pengajuan <span>↗</span></button>
+        <p class="form-note" id="form-note">Pengajuan tidak langsung tampil; informasi akan ditinjau terlebih dahulu.</p>
+      </form>
+    </section>
+  </main>
+  <footer class="site-footer shell"><span><img class="footer-logo" src="assets/rimba-kita-logo.svg" alt="Rimba Kita" /></span><span>Proyek publik untuk Indonesia · v0.3</span><a href="aksi.html">Kembali ke daftar aksi</a></footer>
+  <script src="app.js?v=20261017-action-form-1"></script>
+</body>
+</html>
