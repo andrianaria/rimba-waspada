@@ -166,7 +166,7 @@ async function fetchNews() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10000);
   try {
-    const response = await fetch('/api/news?view=curated', { signal: controller.signal });
+    const response = await fetch('/api/news?view=curated&v=2', { signal: controller.signal });
     if (!response.ok) throw new Error(`Indeks berita HTTP ${response.status}`);
     const payload = await response.json();
     const articles = (payload.articles || []).map((article) => ({ ...article, source: articleSource(article) || article.source || article.domain || 'Media' })).filter((article) => article.url && article.title);

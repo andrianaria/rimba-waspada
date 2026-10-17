@@ -73,7 +73,9 @@ export async function onRequestGet() {
       const endpoint = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`;
       const response = await fetchWithTimeout(endpoint);
       if (!response.ok) return [];
-      return parseGoogleNews(await response.text()).map((article) => ({ ...article, source }));
+      return parseGoogleNews(await response.text())
+        .filter((article) => article.domain.includes(domain))
+        .map((article) => ({ ...article, source }));
     });
     const [broadResult, ...sourceResultsSettled] = await Promise.allSettled([fetchWithTimeout(broadEndpoint), ...sourceResults]);
     let articles = sourceResultsSettled.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
@@ -105,7 +107,7 @@ export async function onRequestGet() {
     if (curatedArticles.length) articles = curatedArticles;
     articles = [...new Map(articles.map((article) => [article.url, article])).values()];
     if (!articles.length) articles = fallbackArticles;
-    return new Response(JSON.stringify({ articles, stale: articles === fallbackArticles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=900, stale-while-revalidate=1800' } });
+    return new Response(JSON.stringify({ articles, stale: articles === fallbackArticles }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=900' } });
   } catch (error) {
     const message = error?.name === 'AbortError' ? 'Sumber berita terlalu lama merespons.' : 'Indeks berita tidak dapat dihubungi.';
     return new Response(JSON.stringify({ error: message, articles: fallbackArticles, stale: true }), { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=900' } });
